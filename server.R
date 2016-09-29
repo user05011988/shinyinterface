@@ -7,22 +7,21 @@ library(D3TableFilter)
 source('packages_sources.R')
 packages_sources()
 library(minpack.lm)
+source('sign_par.R')
+
 
 edits <- data.frame(Row = c("", ""), Column = (c("", "")), Value = (c("", "")), stringsAsFactors = FALSE);
 rownames(edits) <- c("Fail", "Success");
 
-filtering <- data.frame(Rows = c(nrow(mtcars), nrow(mtcars)), Indices = c(paste(1:nrow(mtcars), collapse = ', '), paste(1:nrow(mtcars), collapse = ', ')), stringsAsFactors = FALSE);
-rownames(filtering) <- c("Before", "After")
+
 
 shinyServer(function(input, output,session) {
   revals <- reactiveValues();
   
   revals$mtcars <- mtcars;
   revals$edits <- edits;
-  revals$filtering <- filtering;
-  revals$filters <- NULL;
   revals$rowIndex <- 1:nrow(mtcars);
-  revals$filters <- data.frame(Column = character(), Filter = character(), stringsAsFactors = FALSE);
+  v <- reactiveValues(meh=NULL, blah = NULL)
   
   output$mtcars <- renderD3tf({
 
@@ -98,20 +97,114 @@ shinyServer(function(input, output,session) {
       edit=TRUE,
       
       tableStyle = "table table-bordered");
-    # enable editing of the first two columns of the "mtcars" table
-    # enableEdit(session, "mtcars", c("col_1", "col_2"))
-
-
+    
   })
- 
+  
+  # mtcars3=input$mtcars2_edit
+  revals2 <- reactiveValues();
+  # mtcars2=ifelse(exists(v$meh),v$meh,rbind(c(1,0,0,0,0,1,0),rbind(c(1,0,0,0,0,1,0))))
+  revals2$mtcars <- mtcars2;
+  revals2$edits <- edits;
+  revals2$rowIndex <- 1:nrow(mtcars2);
+  
+  output$mtcars2 <- renderD3tf({
+    
+    # Define table properties. See http://tablefilter.free.fr/doc.php
+    # for a complete reference
+    tableProps <- list(
+      btn_reset = TRUE,
+      sort = TRUE,
+      # enableEdit(session, "mtcars", c("col_1", "col_2")),
+      sort_config = list(
+        # alphabetic sorting for the row names column, numeric for all other columns
+        sort_types = c("String", rep("Number", ncol(v$meh)))
+      )
+    );
+    # print(input$mtcars2)
+    # print(input$mtcars2_edit)
+    # print(v$meh)
+    observe({
+      if(is.null(input$mtcars2_edit)) return(NULL);
+      print(revals2$mtcars)
+#       if(is.null(v$meh)) {
+#         edit <- input$mtcars2_edit}
+#       else {edit <- v$meh;
+# }
+      edit <- input$mtcars2_edit
+      isolate({
+        # need isolate, otherwise this observer would run twice
+        # for each edit
+        id <- edit$id;
+        row <- as.integer(edit$row);
+        col <- as.integer(edit$col);
+        val <- edit$val;
+        
+        # validate input 
+        if(col == 0) {
+          # rownames
+          oldval <- rownames(revals2$mtcars)[row];
+          if(grepl('^\\d', val)) {
+            rejectEdit(session, tbl = "mtcars2", row = row, col = col,  id = id, value = oldval);
+            revals2$edits["Fail", "Row"] <- row;
+            revals2$edits["Fail", "Column"] <- col;
+            revals2$edits["Fail", "Value"] <- val;
+            return(NULL);
+          }
+        } else if (col %in% c(1,2, 3,4,5,6,7)){
+          # numeric columns
+          if(is.na(suppressWarnings(as.numeric(val)))) {
+            oldval <- revals2$mtcars[row, col];
+            # reset to the old value
+            # input will turn red briefly, than fade to previous color while
+            # text returns to previous value
+            rejectEdit(session, tbl = "mtcars2", row = row, col = col, id = id, value = oldval);
+            revals2$edits["Fail", "Row"] <- row;
+            revals2$edits["Fail", "Column"] <- col;
+            revals2$edits["Fail", "Value"] <- val;
+            return(NULL);
+          } 
+        } 
+        # accept edits
+        if(col == 0) {
+          rownames(revals2$mtcars)[row] <- val;
+        } else if (col %in% c(1,2, 3,4,5,6,7)) {
+          revals2$mtcars[row, col] <- as.numeric(val);
+          val = round(as.numeric(val), 3)
+          
+        }
+        # confirm edits
+        confirmEdit(session, tbl = "mtcars2", row = row, col = col, id = id, value = val);
+        revals2$edits["Success", "Row"] <- row;
+        revals2$edits["Success", "Column"] <- col;
+        revals2$edits["Success", "Value"] <- val;
+      })
+      
+    })
+    
+    d3tf(revals2$mtcars,
+      tableProps = tableProps,
+      showRowNames = F,
+      edit=TRUE,
+      
+      tableStyle = "table table-bordered");
+    
+    
+    
+  })
 
-  v <- reactiveValues(blah = NULL)
   
   observeEvent(input$action, {
     # if(is.null(revals$rowIndex)) return(invisible());    
     # if(is.null(revals$mtcars)) v$p <- autorun(autorun_data, finaloutput,input,mtcars) 
     # else v$p <- autorun(autorun_data, finaloutput,input,revals$mtcars) 
     v$blah <- autorun(autorun_data, finaloutput,input,revals$mtcars) 
+    v$meh=v$blah$signals_parameters
+    # revals2 <- reactiveValues();
+    revals2$mtcars <- v$meh;
+    revals2$edits <- edits;
+    revals2$rowIndex <- 1:nrow(v$meh);
+     # v$mtcars3=v$meh
+    
   })
 # } 
 #       
@@ -144,4 +237,23 @@ shinyServer(function(input, output,session) {
     }
     
   })
+  
+  observe({
+    if(is.null(v$meh_edit)) return(NULL);
+    print('Whatver')})
+  
+  t <- reactiveValues(signals_parameters = NULL)
+  
+  # observeEvent(input$action, {
+  #   if (is.null(v$signals_parameters)) {
+  #     # return()
+  #     t$signals_parameters=sign_par(autorun_data, finaloutput,input,ROI_profile)
+  #     
+  #   } else {
+  #     ggplotly(v$blah$p)
+  #   }
+  #   
+  # })
+  
+  
 })
