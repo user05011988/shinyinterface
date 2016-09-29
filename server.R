@@ -61,7 +61,7 @@ shinyServer(function(input, output,session) {
             revals$edits["Fail", "Value"] <- val;
             return(NULL);
           }
-        } else if (col %in% c(1, 2, 3)){
+        } else if (col %in% c(2, 3,4,5,6,7,8)){
           # numeric columns
           if(is.na(suppressWarnings(as.numeric(val)))) {
             oldval <- revals$mtcars[row, col];
@@ -74,22 +74,14 @@ shinyServer(function(input, output,session) {
             revals$edits["Fail", "Value"] <- val;
             return(NULL);
           } 
-        } else if (col %in% c(4, 5)) {
-          ; #nothing to validate for logical columns
-        }
+        } 
         # accept edits
         if(col == 0) {
           rownames(revals$mtcars)[row] <- val;
-        } else if (col %in% c(1, 2, 3)) {
+        } else if (col %in% c(2, 3,4,5,6,7,8)) {
           revals$mtcars[row, col] <- as.numeric(val);
-          val = round(as.numeric(val), 1)
-        } else if (col == 4) {
-          revals$mtcars[row, col] <- val;
-        } else if (col == 5) {
-          # radio buttons. There is no uncheck event
-          # so we need to set the whole column to FALSE here
-          revals$mtcars[, "favorite"] <- FALSE;
-          revals$mtcars[row, col] <- val;
+          val = round(as.numeric(val), 3)
+
         }
         # confirm edits
         confirmEdit(session, tbl = "mtcars", row = row, col = col, id = id, value = val);
@@ -113,13 +105,13 @@ shinyServer(function(input, output,session) {
   })
  
 
-  v <- reactiveValues(p = NULL)
+  v <- reactiveValues(blah = NULL)
   
   observeEvent(input$action, {
     # if(is.null(revals$rowIndex)) return(invisible());    
     # if(is.null(revals$mtcars)) v$p <- autorun(autorun_data, finaloutput,input,mtcars) 
     # else v$p <- autorun(autorun_data, finaloutput,input,revals$mtcars) 
-    v$p <- autorun(autorun_data, finaloutput,input,revals$mtcars) 
+    v$blah <- autorun(autorun_data, finaloutput,input,revals$mtcars) 
   })
 # } 
 #       
@@ -135,7 +127,7 @@ shinyServer(function(input, output,session) {
     # spectra ,server = FALSE)
   
   output$plot <- renderPlotly({
-    if (is.null(v$p)) {
+    if (is.null(v$blah)) {
       # return()
     dataset=rbind(autorun_data$dataset,colMeans(autorun_data$dataset),apply(autorun_data$dataset,2,median))
     rownames(dataset)[(dim(autorun_data$dataset)[1]+1):dim(dataset)[1]]=c('Mean spectrum', 'Median spectrum')
@@ -148,7 +140,7 @@ shinyServer(function(input, output,session) {
     plotdata3 <- melt(plotdata, id = "Xdata")
     plot_ly(data=plotdata3,x=~Xdata,y=~value,color=~variable,type='scatter',mode='lines') %>% layout(xaxis = list(autorange = "reversed"))
     } else {
-      ggplotly(v$p)
+      ggplotly(v$blah$p)
     }
     
   })
