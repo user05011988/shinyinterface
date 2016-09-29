@@ -19,11 +19,19 @@ source('signals_int.R')
 
 shinyServer(function(input, output,session) {
   revals <- reactiveValues();
-  
-  revals$mtcars <- mtcars;
-  # revals$edits <- edits;
-  revals$rowIndex <- 1:nrow(mtcars);
   v <- reactiveValues(meh=NULL, blah = NULL)
+  
+  sell <- reactiveValues(mtcars=NULL);
+  observeEvent(input$select, {
+   sell$mtcars=ROI_data[ROI_separator[, 1][as.numeric(input$select)]:(ROI_separator[, 1][as.numeric(input$select)+1]-1),4:11]
+ 
+  print(input$select)
+  # print(sell$mtcars)
+  
+  
+  revals$mtcars <- sell$mtcars;
+  # revals$edits <- edits;
+  revals$rowIndex <- 1:nrow(sell$mtcars);
   
   output$mtcars <- renderD3tf({
 
@@ -35,7 +43,7 @@ shinyServer(function(input, output,session) {
       # enableEdit(session, "mtcars", c("col_1", "col_2")),
       sort_config = list(
         # alphabetic sorting for the row names column, numeric for all other columns
-        sort_types = c("String", rep("Number", ncol(mtcars)))
+        sort_types = c("String", rep("Number", ncol(sell$mtcars)))
       )
     );
     
@@ -93,7 +101,7 @@ shinyServer(function(input, output,session) {
       
     })
     
-    d3tf(mtcars,
+    d3tf(sell$mtcars,
       tableProps = tableProps,
       showRowNames = F,
       edit=TRUE,
@@ -101,7 +109,7 @@ shinyServer(function(input, output,session) {
       tableStyle = "table table-bordered");
     
   })
-  
+  })
   # mtcars3=input$mtcars2_edit
   revals2 <- reactiveValues();
   # mtcars2=ifelse(exists(v$meh),v$meh,rbind(c(1,0,0,0,0,1,0),rbind(c(1,0,0,0,0,1,0))))
@@ -127,7 +135,7 @@ shinyServer(function(input, output,session) {
     # print(v$meh)
     observe({
       if(is.null(input$mtcars2_edit)) return(NULL);
-      print(revals2$mtcars)
+      # print(revals2$mtcars)
 #       if(is.null(v$meh)) {
 #         edit <- input$mtcars2_edit}
 #       else {edit <- v$meh;
@@ -222,6 +230,9 @@ shinyServer(function(input, output,session) {
 # } 
 #       
 #   })
+  
+  
+  
   ll=c(autorun_data$Experiments,'Mean spectrum', 'Median spectrum')
   spectra=cbind(ll,rep(c(1,2),length(ll)/2))
   # rownames(spectra)=ll

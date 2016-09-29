@@ -26,7 +26,9 @@ shinyUI(fluidPage(
         numericInput(inputId="num2", label="Right limit", value = 4.035,step=0.0001,width='50%'),
       
       actionButton("action", label = "Action"),
-      
+      selectInput("select", label = h3("Select box"), 
+        choices = select_options, 
+        selected = 1),
       
     DT::dataTableOutput('x1'),
       d3tfOutput('mtcars'),

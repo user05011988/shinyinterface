@@ -1,4 +1,4 @@
-autorun = function(autorun_data, finaloutput,input,ROI_profile) {
+signals_int = function(autorun_data, finaloutput,input,signals_introduce) {
   
   
     #Preparation of necessary variables and folders to store figures and information of the fitting
@@ -50,20 +50,20 @@ autorun = function(autorun_data, finaloutput,input,ROI_profile) {
       #                    "N")
     # print(ROI_profile)
       #Parameters of every signal necessary for the fitting
-      initial_fit_parameters = ROI_profile[, 2:8,drop=F]
-     input
-      # initial_fit_parameters=as.data.frame(apply(initial_fit_parameters,2,as.numeric))
-
-      # initial_fit_parameters = initial_fit_parameters[complete.cases(initial_fit_parameters),]
-      colnames(initial_fit_parameters) = c(
-        "positions",
-        "widths",
-        "quantification_or_not",
-        "multiplicities",
-        "Jcoupling",
-        "roof_effect",
-        "shift_tolerance"
-      )
+     #  initial_fit_parameters = ROI_profile[, 2:8,drop=F]
+     # input
+     #  # initial_fit_parameters=as.data.frame(apply(initial_fit_parameters,2,as.numeric))
+     # 
+     #  # initial_fit_parameters = initial_fit_parameters[complete.cases(initial_fit_parameters),]
+     #  colnames(initial_fit_parameters) = c(
+     #    "positions",
+     #    "widths",
+     #    "quantification_or_not",
+     #    "multiplicities",
+     #    "Jcoupling",
+     #    "roof_effect",
+     #    "shift_tolerance"
+     #  )
 
       #Ydata is scaled to improve the quality of the fitting
       scaledYdata = as.vector(Ydata / (max(Ydata)))
@@ -73,25 +73,26 @@ autorun = function(autorun_data, finaloutput,input,ROI_profile) {
       other_fit_parameters$clean_fit = clean_fit
 
       #Adaptation of the info of the parameters into a single matrix and preparation (if necessary) of the background signals that will conform the baseline
-      FeaturesMatrix = fitting_prep(Xdata,
-                                    scaledYdata,
-                                    initial_fit_parameters,
-                                    other_fit_parameters)
-
-
-      #Calculation of the parameters that will achieve the best fitting
-      signals_parameters = fittingloop(FeaturesMatrix,
-                                       Xdata,
-                                       scaledYdata,
-                                       other_fit_parameters)
+      # FeaturesMatrix = fitting_prep(Xdata,
+      #                               scaledYdata,
+      #                               initial_fit_parameters,
+      #                               other_fit_parameters)
+      # 
+      # 
+      # #Calculation of the parameters that will achieve the best fitting
+      # signals_parameters = fittingloop(FeaturesMatrix,
+      #                                  Xdata,
+      #                                  scaledYdata,
+      #                                  other_fit_parameters)
 
       #Fitting of the signals
-      multiplicities=FeaturesMatrix[,11]
-      roof_effect=FeaturesMatrix[,12]
+      multiplicities=signals_introduce[,6]
+      roof_effect=signals_introduce[,7]
+      signals_parameters=as.vector(t(signals_introduce[,1:5]))
       fitted_signals = fitting_optimization(signals_parameters,
                                          Xdata,multiplicities,roof_effect)
       # signals_parameters=as.matrix(signals_parameters)
-      dim(signals_parameters) = c(5, dim(FeaturesMatrix)[1])
+      dim(signals_parameters) = c(5, dim(signals_introduce)[1])
       rownames(signals_parameters) = c(
         'intensity',
         'shift',
@@ -305,7 +306,7 @@ autorun = function(autorun_data, finaloutput,input,ROI_profile) {
   # #           file.path(autorun_data$export_path, "alarmmatrix.csv"),
   # #           )
    
-    signals_parameters=t(rbind(signals_parameters,multiplicities,roof_effect))
+    signals_parameters=t(rbind(signals_parameters[, signals_to_quantify],multiplicities[signals_to_quantify],roof_effect[signals_to_quantify]))
     blah=list()
     blah$signals_parameters=signals_parameters
     blah$p=p
