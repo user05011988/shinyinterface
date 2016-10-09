@@ -1,12 +1,15 @@
-autorun = function(autorun_data, finaloutput,input,ROI_profile) {
+autorun = function(autorun_data, finaloutput,ROI_profile,input) {
   
   
     #Preparation of necessary variables and folders to store figures and information of the fitting
-  spectrum_index=input$x1_rows_selected
+  if(is.null(input$x1_rows_selected)) {spectrum_index=1
+  } else {spectrum_index=input$x1_rows_selected}
   
-  ROI_buckets=which(round(autorun_data$ppm,6)==round(input$num1,6)):which(round(autorun_data$ppm,6)==round(input$num2,6))
+  ROI_buckets=which(round(autorun_data$ppm,6)==round(ROI_profile[1,1],6)):which(round(autorun_data$ppm,6)==round(ROI_profile[1,2],6))
+  # print(ROI_profile)
   Xdata= as.numeric(autorun_data$ppm[ROI_buckets])
     Ydata = as.numeric(autorun_data$dataset[spectrum_index, ROI_buckets])
+    
     other_fit_parameters = fitting_variables()
     other_fit_parameters$freq = autorun_data$freq
     other_fit_parameters$ROI_buckets = ROI_buckets
@@ -50,8 +53,7 @@ autorun = function(autorun_data, finaloutput,input,ROI_profile) {
       #                    "N")
     # print(ROI_profile)
       #Parameters of every signal necessary for the fitting
-      initial_fit_parameters = ROI_profile[, 2:8,drop=F]
-     input
+      initial_fit_parameters = ROI_profile[, 5:11,drop=F]
       # initial_fit_parameters=as.data.frame(apply(initial_fit_parameters,2,as.numeric))
 
       # initial_fit_parameters = initial_fit_parameters[complete.cases(initial_fit_parameters),]
@@ -71,7 +73,8 @@ autorun = function(autorun_data, finaloutput,input,ROI_profile) {
       #Other parameters necessary for the fitting independent of the type of signal
 
       other_fit_parameters$clean_fit = clean_fit
-
+      
+      
       #Adaptation of the info of the parameters into a single matrix and preparation (if necessary) of the background signals that will conform the baseline
       FeaturesMatrix = fitting_prep(Xdata,
                                     scaledYdata,
@@ -91,7 +94,7 @@ autorun = function(autorun_data, finaloutput,input,ROI_profile) {
       fitted_signals = fitting_optimization(signals_parameters,
                                          Xdata,multiplicities,roof_effect)
       # signals_parameters=as.matrix(signals_parameters)
-      dim(signals_parameters) = c(5, dim(FeaturesMatrix)[1])
+      dim(signals_parameters) = c(5, length(signals_parameters)/5)
       rownames(signals_parameters) = c(
         'intensity',
         'shift',
@@ -136,10 +139,9 @@ autorun = function(autorun_data, finaloutput,input,ROI_profile) {
         output_data$signals
       )
       rownames(plot_data) = c("signals_sum",
-                              "baseline_sum",
-                              "fitted_sum",
-                              as.character(ROI_profile[,1]))
-
+        "baseline_sum",
+        "fitted_sum",
+        as.character(ROI_profile[,4]),rep('additional signal',dim(plot_data)[1]-length(ROI_profile[,4])-3))
       r=1
       # plotdata = data.frame(Xdata=autorun_data$ppm[ROI_buckets], t(dataset[input$x1_rows_selected,ROI_buckets,drop=F]))
       plotdata = data.frame(Xdata, signals = plot_data[3 + other_fit_parameters$signals_to_quantify[r], ] * max(Ydata))

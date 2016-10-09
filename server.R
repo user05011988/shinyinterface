@@ -23,15 +23,38 @@ shinyServer(function(input, output,session) {
   
   sell <- reactiveValues(mtcars=NULL);
   observeEvent(input$select, {
-   sell$mtcars=ROI_data[ROI_separator[, 1][as.numeric(input$select)]:(ROI_separator[, 1][as.numeric(input$select)+1]-1),4:11]
- 
-  print(input$select)
-  # print(sell$mtcars)
+    # print(input$x1_rows_selected)
+    
+    # input$mtcars_edit=NULL    
+   sell$mtcars=ROI_data[ROI_separator[, 1][as.numeric(input$select)]:(ROI_separator[, 1][as.numeric(input$select)+1]-1),1:11]
+   # input$mtcars_edit=NULL    
+   
+  # if(!is.null(input$mtcars_edit)) input$mtcars_edit=NULL
   
-  
+  sell$change=1
+  sell$stop=0
+  # if (sell$change=1) 
+    # sell$fer=imput$mtcars_edit
   revals$mtcars <- sell$mtcars;
+  # print(revals$mtcars)
+  print(sell$mtcars)
+  
+  print(revals$mtcars)
+  
+  # observeEvent(input$action, {
+  #   # print(sell$mtcars)
+  #   # print(revals$mtcars)
+  #   
+  #   v$blah <- autorun(autorun_data, finaloutput,revals$mtcars,input) 
+  #   v$meh=v$blah$signals_parameters
+  #   revals2$mtcars <- v$meh;
+  #   revals2$rowIndex <- 1:nrow(v$meh);
+  #   
+  # })
+  
   # revals$edits <- edits;
   revals$rowIndex <- 1:nrow(sell$mtcars);
+  # print(input$mtcars_edit)
   
   output$mtcars <- renderD3tf({
 
@@ -48,9 +71,24 @@ shinyServer(function(input, output,session) {
     );
     
     observe({
-      if(is.null(input$mtcars_edit)) return(NULL);
-      edit <- input$mtcars_edit;
+      # print(sell$mtcars)
+      # print(revals$mtcars)
+      # print(input$mtcars_edit)
+      # print(sell$change)
       
+        
+      if(is.null(input$mtcars_edit)|(sell$stop==1)) {
+        sell$change=0
+        # p=empty_plot(autorun_data,input,revals)
+        # ggplotly(p)
+        v$blah=NULL
+        
+        return(NULL);
+        
+      }   
+      
+      
+      edit <- input$mtcars_edit
       isolate({
         # need isolate, otherwise this observer would run twice
         # for each edit
@@ -70,7 +108,7 @@ shinyServer(function(input, output,session) {
             # revals$edits["Fail", "Value"] <- val;
             # return(NULL);
           }
-        } else if (col %in% c(2, 3,4,5,6,7,8)){
+        } else if (col %in% c(1,2,5,6,7,8,9,10,11)){
           # numeric columns
           if(is.na(suppressWarnings(as.numeric(val)))) {
             oldval <- revals$mtcars[row, col];
@@ -85,30 +123,59 @@ shinyServer(function(input, output,session) {
            } 
         } 
         # accept edits
+        if (sell$change==1){
+          # rownames(revals$mtcars)[row] <- val;
+          sell$change=0
+          sell$stop=1
+          print('hey')
+          v$blah=NULL
+          # return(NULL);
+          # p=empty_plot(autorun_data,input,revals)
+          # ggplotly(p)
+        } else{
         if(col == 0) {
+          oldval <- revals$mtcars[row, col];
+          
           rownames(revals$mtcars)[row] <- val;
-        } else if (col %in% c(2, 3,4,5,6,7,8)) {
+        } else if (col %in% c(1,2,5,6,7,8,9,10,11)) {
           revals$mtcars[row, col] <- as.numeric(val);
           val = round(as.numeric(val), 3)
+          # sell$change=0
 
-        }
         # confirm edits
-        confirmEdit(session, tbl = "mtcars", row = row, col = col, id = id, value = val);
+        }
+          confirmEdit(session, tbl = "mtcars", row = row, col = col, id = id, value = val);
+          print('shit')
+          
+        
+        }
+        # print(sell$change)
         # revals$edits["Success", "Row"] <- row;
         # revals$edits["Success", "Column"] <- col;
         # revals$edits["Success", "Value"] <- val;
       })
-      
+        
     })
     
-    d3tf(sell$mtcars,
+    
+    d3tf(revals$mtcars,
       tableProps = tableProps,
       showRowNames = F,
       edit=TRUE,
       
       tableStyle = "table table-bordered");
     
+    # print(revals$mtcars)
+    # v$blah <- autorun(autorun_data, finaloutput,revals$mtcars,input) 
+    # v$meh=v$blah$signals_parameters
+    # # print(v$blah)
+    # print(v$meh)
+    # 
+    # revals2$mtcars <- v$meh;
+    # revals2$rowIndex <- 1:nrow(v$meh);
+    
   })
+  
   })
   # mtcars3=input$mtcars2_edit
   revals2 <- reactiveValues();
@@ -190,7 +257,7 @@ shinyServer(function(input, output,session) {
       })
      # if (exists('val')) {
        # v$sol <- signals_int(autorun_data, finaloutput,input,revals2$mtcars) 
-      a=signals_int(autorun_data, finaloutput,input,revals2$mtcars) 
+      a=signals_int(autorun_data, finaloutput,revals$mtcars,input,revals2$mtcars) 
       print(a$p)
       output$plot=renderPlotly({ggplotly(a$p)})
       
@@ -215,17 +282,15 @@ shinyServer(function(input, output,session) {
 
   
   observeEvent(input$action, {
-    # if(is.null(revals$rowIndex)) return(invisible());    
-    # if(is.null(revals$mtcars)) v$p <- autorun(autorun_data, finaloutput,input,mtcars) 
-    # else v$p <- autorun(autorun_data, finaloutput,input,revals$mtcars) 
-    v$blah <- autorun(autorun_data, finaloutput,input,revals$mtcars) 
-    v$meh=v$blah$signals_parameters
-    # revals2 <- reactiveValues();
-    revals2$mtcars <- v$meh;
-    # revals2$edits <- edits;
-    revals2$rowIndex <- 1:nrow(v$meh);
-     # v$mtcars3=v$meh
+    # print(sell$mtcars)
+    # print("---")
+    # print(revals$mtcars)
     
+    v$blah <- autorun(autorun_data, finaloutput,revals$mtcars,input) 
+    v$meh=v$blah$signals_parameters
+    revals2$mtcars <- v$meh;
+    revals2$rowIndex <- 1:nrow(v$meh);
+
   })
 # } 
 #       
@@ -238,46 +303,27 @@ shinyServer(function(input, output,session) {
   # rownames(spectra)=ll
   colnames(spectra)=c('spectrum','Group')
   
-  output$x1 = DT::renderDataTable(
+  output$x1 = DT::renderDataTable(spectra , selection = list(mode = 'multiple', selected = 11),server = T)
     
-   spectra , selection = list(mode = 'multiple', selected = 11),server = FALSE)
-    # spectra ,server = FALSE)
+  observeEvent(input$x1_rows_selected, {v$blah=NULL
+  })
+    
+  # spectra ,server = FALSE)
   
   output$plot <- renderPlotly({
     if (is.null(v$blah)) {
+      # print(input$x1_rows_selected)
+      
       # return()
-    dataset=rbind(autorun_data$dataset,colMeans(autorun_data$dataset),apply(autorun_data$dataset,2,median))
-    rownames(dataset)[(dim(autorun_data$dataset)[1]+1):dim(dataset)[1]]=c('Mean spectrum', 'Median spectrum')
-    lol=which(round(autorun_data$ppm,6)==round(input$num1,6))
-    lol2=which(round(autorun_data$ppm,6)==round(input$num2,6))
-
-    plotdata = data.frame(Xdata=autorun_data$ppm[lol:lol2], t(dataset[input$x1_rows_selected,lol:lol2,drop=F]))
-    # 
-    # plot_ly(data=plotdata,x=~Xdata,y=~Ydata)
-    plotdata3 <- melt(plotdata, id = "Xdata")
-    plot_ly(data=plotdata3,x=~Xdata,y=~value,color=~variable,type='scatter',mode='lines') %>% layout(xaxis = list(autorange = "reversed"))
+    p=empty_plot(autorun_data,input,revals)
+    ggplotly(p)
     } else {
       ggplotly(v$blah$p)
     }
     
   })
   
-  # observe({
-  #   if(is.null(v$meh_edit)) return(NULL);
-  #   print('Whatver')})
-  # 
-  # t <- reactiveValues(signals_parameters = NULL)
   
-  # observeEvent(input$action, {
-  #   if (is.null(v$signals_parameters)) {
-  #     # return()
-  #     t$signals_parameters=sign_par(autorun_data, finaloutput,input,ROI_profile)
-  #     
-  #   } else {
-  #     ggplotly(v$blah$p)
-  #   }
-  #   
-  # })
   
   
 })

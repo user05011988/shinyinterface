@@ -20,10 +20,10 @@ shinyUI(fluidPage(
   sidebarLayout(
     sidebarPanel(
       
-
-      
-        numericInput(inputId="num1", label="Left limit", value = 4.09,step=0.0001,width='50%'),
-        numericInput(inputId="num2", label="Right limit", value = 4.035,step=0.0001,width='50%'),
+# 
+#       
+#         numericInput(inputId="num1", label="Left limit", value = 4.09,step=0.0001,width='50%'),
+#         numericInput(inputId="num2", label="Right limit", value = 4.035,step=0.0001,width='50%'),
       
       actionButton("action", label = "Action"),
       selectInput("select", label = h3("Select box"), 

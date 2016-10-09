@@ -1,9 +1,9 @@
 #TO DO: save parameters of imported_data not exported to autorun_data in separate list
 
-setwd("C:/Users/user/Documents/Dolphin/R")
-
-source('packages_sources.R')
-packages_sources()
+# setwd("C:/Users/user/Documents/Dolphin/R")
+#
+# source('packages_sources.R')
+# packages_sources()
 compiler::enableJIT(3)
 
 #Reading of parameters file
@@ -16,7 +16,6 @@ parameters_path = "C:/Users/user/Documents/r_dolphin - csv/Parameters_csv.csv"
 parameters_path = "C:/Bruker/TopSpin3.2/data/MTBLS1/data analysis/Parameters_20.csv"
 parameters_path = "C:/Users/user/Documents/r_dolphin - csv/Parameters_binning_dataset_new.txt"
 parameters_path = "C:/Bruker/TopSpin3.2/data/MTBLS1/data analysis/Parameters_20_2.csv"
-parameters_path = "C:/Bruker/TopSpin3.2/data/MTBLS1/data analysis/Parameters.csv"
 
 #import of data (dataset in csv format or Bruker nmr folder)
 imported_data = import_data(parameters_path)
@@ -32,8 +31,8 @@ for (i in seq_along(imported_data$Experiments)) {
 #creation of list with the different final outputs
 finaloutput = list()
 dummy = matrix(NaN,
-               dim(imported_data$dataset)[1],
-               length(imported_data$signals_names))
+  dim(imported_data$dataset)[1],
+  length(imported_data$signals_names))
 rownames(dummy) = imported_data$Experiments
 colnames(dummy) = imported_data$signals_names
 finaloutput$Area = finaloutput$signal_area_ratio = finaloutput$fitting_error =
@@ -48,7 +47,7 @@ write.csv(
 colnames(imported_data$dataset) = imported_data$ppm
 rownames(imported_data$dataset) = imported_data$Experiments
 write.csv(imported_data$dataset,
-          file.path(imported_data$export_path, 'initialdataset.csv'))
+  file.path(imported_data$export_path, 'initialdataset.csv'))
 if ("not_loaded_experiments" %in% names(imported_data))
   write.table(
     imported_data$not_loaded_experiments,
@@ -80,7 +79,15 @@ autorun_data = list(
   export_path = imported_data$export_path,
   freq = imported_data$freq
 )
- rm(imported_data)
+rm(imported_data)
+ROI_data = read.csv(autorun_data$profile_folder_path, sep = ";",stringsAsFactors = F)
+dummy = which(!is.na(ROI_data[, 1]))
+ROI_separator = cbind(dummy, c(dummy[-1] - 1, dim(ROI_data)[1]))
+mtcars2=rbind(c(1,0,0,0,0,1,0),rbind(c(1,0,0,0,0,1,0)))
+mtcars=ROI_data[1:2,4:11]
 
-#automatic quantification
-finaloutput = autorun(autorun_data, finaloutput)
+ROI_names=paste(ROI_data[ROI_separator[, 1],1],ROI_data[ROI_separator[, 1],2])
+select_options=1:length(ROI_names)
+names(select_options)=ROI_names
+
+
