@@ -15,14 +15,17 @@ plotdata = data.frame(Xdata=autorun_data$ppm[lol:lol2], t(dataset[spectrum_index
 plotdata3 <- melt(plotdata, id = "Xdata")
 
 # print(plotdata3)
-p=ggplot() +
-  geom_line(data = plotdata3,
-    aes(
-      x = Xdata,
-      y = value,
-      colour = variable,
-      group = variable
-    ))+
-  scale_x_reverse() + labs(x='ppm',y='Intensity')
+# p=ggplot() +
+#   geom_line(data = plotdata3,
+#     aes(
+#       x = Xdata,
+#       y = value,
+#       colour = variable,
+#       group = variable
+#     ))
+plot_ly(data=plotdata3,x=~Xdata,y=~value,color=~variable,type='scatter',mode='lines') %>% layout(xaxis = list(autorange = "reversed"))
+
+# +
+#   scale_x_reverse() + labs(x='ppm',y='Intensity')
 return(p)
 }

@@ -1,9 +1,9 @@
 #TO DO: save parameters of imported_data not exported to autorun_data in separate list
 
-# setwd("C:/Users/user/Documents/Dolphin/R")
-#
-# source('packages_sources.R')
-# packages_sources()
+setwd("C:/Users/user/Documents/shinyinterface")
+
+source('packages_sources.R')
+packages_sources()
 compiler::enableJIT(3)
 
 #Reading of parameters file
@@ -83,8 +83,8 @@ rm(imported_data)
 ROI_data = read.csv(autorun_data$profile_folder_path, sep = ";",stringsAsFactors = F)
 dummy = which(!is.na(ROI_data[, 1]))
 ROI_separator = cbind(dummy, c(dummy[-1] - 1, dim(ROI_data)[1]))
-mtcars2=rbind(c(1,0,0,0,0,1,0),rbind(c(1,0,0,0,0,1,0)))
-mtcars=ROI_data[1:2,4:11]
+# mtcars2=ROI_data[1:2,4:11]
+# mtcars=ROI_data[1:2,4:11]
 
 ROI_names=paste(ROI_data[ROI_separator[, 1],1],ROI_data[ROI_separator[, 1],2])
 select_options=1:length(ROI_names)

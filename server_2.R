@@ -19,26 +19,32 @@ source('signals_int.R')
 
 shinyServer(function(input, output,session) {
   revals <- reactiveValues();
-  
   v <- reactiveValues(meh=NULL, blah = NULL)
+  revals2 <- reactiveValues();
   
   sell <- reactiveValues(mtcars=NULL);
+  # revals$mtcars=rbind(rep(NA,7),rep(NA,7))
+  # revals2$mtcars=rbind(rep(NA,7),rep(NA,7))
   observeEvent(input$select, {
+    # print(input$x1_rows_selected)
+    
+    
+    # revals$mtcars=rbind(rep(NA,7),rep(NA,7))
     # input$mtcars_edit=NULL    
    sell$mtcars=ROI_data[ROI_separator[, 1][as.numeric(input$select)]:(ROI_separator[, 1][as.numeric(input$select)+1]-1),1:11]
    # input$mtcars_edit=NULL    
    
   # if(!is.null(input$mtcars_edit)) input$mtcars_edit=NULL
-  
+  v$blah=NULL
   sell$change=1
   sell$stop=0
   # if (sell$change=1) 
     # sell$fer=imput$mtcars_edit
   revals$mtcars <- sell$mtcars;
   # print(revals$mtcars)
-  print(sell$mtcars)
-  
-  print(revals$mtcars)
+  # print(sell$mtcars)
+  # 
+  # print(revals$mtcars)
   
   # observeEvent(input$action, {
   #   # print(sell$mtcars)
@@ -52,7 +58,7 @@ shinyServer(function(input, output,session) {
   # })
   
   # revals$edits <- edits;
-  revals$rowIndex <- 1:nrow(sell$mtcars);
+  # revals$rowIndex <- 1:nrow(sell$mtcars);
   # print(input$mtcars_edit)
   
   output$mtcars <- renderD3tf({
@@ -78,6 +84,10 @@ shinyServer(function(input, output,session) {
         
       if(is.null(input$mtcars_edit)|(sell$stop==1)) {
         sell$change=0
+        # p=empty_plot(autorun_data,input,revals)
+        # ggplotly(p)
+        v$blah=NULL
+        
         return(NULL);
         
       }   
@@ -120,12 +130,13 @@ shinyServer(function(input, output,session) {
         # accept edits
         if (sell$change==1){
           # rownames(revals$mtcars)[row] <- val;
-          
           sell$change=0
           sell$stop=1
           print('hey')
+          v$blah=NULL
           # return(NULL);
-          
+          # p=empty_plot(autorun_data,input,revals)
+          # ggplotly(p)
         } else{
         if(col == 0) {
           oldval <- revals$mtcars[row, col];
@@ -172,11 +183,9 @@ shinyServer(function(input, output,session) {
   
   })
   # mtcars3=input$mtcars2_edit
-  revals2 <- reactiveValues();
   # mtcars2=ifelse(exists(v$meh),v$meh,rbind(c(1,0,0,0,0,1,0),rbind(c(1,0,0,0,0,1,0))))
-  revals2$mtcars <- mtcars2;
   # revals2$edits <- edits;
-  revals2$rowIndex <- 1:nrow(mtcars2);
+  # revals2$rowIndex <- 1:nrow(revals2$mtcars);
   
   output$mtcars2 <- renderD3tf({
     
@@ -195,7 +204,13 @@ shinyServer(function(input, output,session) {
     # print(input$mtcars2_edit)
     # print(v$meh)
     observe({
-      if(is.null(input$mtcars2_edit)) return(NULL);
+      if(is.null(input$mtcars2_edit)|(sell$stop==1)) {
+        sell$change=0
+        # p=empty_plot(autorun_data,input,revals)
+        # ggplotly(p)
+        # v$blah=NULL
+        
+       return(NULL)}
       # print(revals2$mtcars)
 #       if(is.null(v$meh)) {
 #         edit <- input$mtcars2_edit}
@@ -252,8 +267,8 @@ shinyServer(function(input, output,session) {
      # if (exists('val')) {
        # v$sol <- signals_int(autorun_data, finaloutput,input,revals2$mtcars) 
       a=signals_int(autorun_data, finaloutput,revals$mtcars,input,revals2$mtcars) 
-      print(a$p)
-      output$plot=renderPlotly({ggplotly(a$p)})
+      # print(a$p)
+      # output$plot=renderPlotly({ggplotly(a$p)})
       
        # v$sol2=v$sol$signals_parameters
        # revals2 <- reactiveValues();
@@ -283,7 +298,7 @@ shinyServer(function(input, output,session) {
     v$blah <- autorun(autorun_data, finaloutput,revals$mtcars,input) 
     v$meh=v$blah$signals_parameters
     revals2$mtcars <- v$meh;
-    revals2$rowIndex <- 1:nrow(v$meh);
+    # revals2$rowIndex <- 1:nrow(v$meh);
 
   })
 # } 
@@ -297,26 +312,51 @@ shinyServer(function(input, output,session) {
   # rownames(spectra)=ll
   colnames(spectra)=c('spectrum','Group')
   
-  output$x1 = DT::renderDataTable(
+  output$x1 = DT::renderDataTable(spectra , selection = list(mode = 'multiple', selected = 11),server = T)
     
-   spectra , selection = list(mode = 'multiple', selected = 11),server = FALSE)
-    # spectra ,server = FALSE)
+  observeEvent(input$x1_rows_selected, {v$blah=NULL
+  })
+    
+  # spectra ,server = FALSE)
   
   output$plot <- renderPlotly({
-    if (is.null(v$blah)) {
+    print(input$x1_rows_selected)
+    print(is.null(v$blah))
+    
+    if(!is.null(input$x1_rows_selected)) {
+    # if (is.null(v$blah)|(!is.null(v$blah)&sell$change==1)) {
+      if (is.null(v$blah)) {
+      #   
+      # print(is.null(v$blah))
+      # print(sell$change)
+      # print(sell$stop)
+      # 
       # return()
-    dataset=rbind(autorun_data$dataset,colMeans(autorun_data$dataset),apply(autorun_data$dataset,2,median))
-    rownames(dataset)[(dim(autorun_data$dataset)[1]+1):dim(dataset)[1]]=c('Mean spectrum', 'Median spectrum')
-    lol=which(round(autorun_data$ppm,6)==round(sell$mtcars[1,1],6))
-    lol2=which(round(autorun_data$ppm,6)==round(sell$mtcars[1,2],6))
+    # print(revals)
+        # rrr=empty_plot(autorun_data,input,sell)
+        # print(class(p))
+        # print(p)
+    # ggplotly(rrr)
+        # rrr
+        # ggplotly(p)
 
-    plotdata = data.frame(Xdata=autorun_data$ppm[lol:lol2], t(dataset[input$x1_rows_selected,lol:lol2,drop=F]))
-    # 
-    # plot_ly(data=plotdata,x=~Xdata,y=~Ydata)
-    plotdata3 <- melt(plotdata, id = "Xdata")
-    plot_ly(data=plotdata3,x=~Xdata,y=~value,color=~variable,type='scatter',mode='lines') %>% layout(xaxis = list(autorange = "reversed"))
-    } else {
+        dataset=rbind(autorun_data$dataset,colMeans(autorun_data$dataset),apply(autorun_data$dataset,2,median))
+        rownames(dataset)[(dim(autorun_data$dataset)[1]+1):dim(dataset)[1]]=c('Mean spectrum', 'Median spectrum')
+        lol=which(round(autorun_data$ppm,6)==round(revals$mtcars[1,1],6))
+        lol2=which(round(autorun_data$ppm,6)==round(revals$mtcars[1,2],6))
+        
+        plotdata = data.frame(Xdata=autorun_data$ppm[lol:lol2], t(dataset[input$x1_rows_selected,lol:lol2,drop=F]))
+        # 
+        # plot_ly(data=plotdata,x=~Xdata,y=~Ydata)
+        plotdata3 <- melt(plotdata, id = "Xdata")
+        plot_ly(data=plotdata3,x=~Xdata,y=~value,color=~variable,type='scatter',mode='lines') %>% layout(xaxis = list(autorange = "reversed"))        
+    print('hey')
+      
+    } else if (!is.null(v$blah)) {
+      print('shit')
+      print(v$blah$p)
       ggplotly(v$blah$p)
+    }
     }
     
   })
