@@ -59,7 +59,7 @@ shinyServer(function(input, output,session) {
     );
     
     observe({
-      if(is.null(input$mtcars_edit)|(sell$stop==1)&(sell$roi==1)) {
+      if(is.null(input$mtcars_edit)|(sell$stop==1)) {
         sell$change=0
         print('step1')
         return(NULL);
