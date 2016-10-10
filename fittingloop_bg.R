@@ -32,7 +32,6 @@ fittingloop_bg = function(FeaturesMatrix, Xdata, Ydata, other_fit_parameters) {
   s0 = lb + (ub - lb) * runif(length(ub))
   # tryCatch({
 
-# print(ple)
     nls.out <-
       nls.lm(
         par = s0,

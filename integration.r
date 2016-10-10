@@ -43,37 +43,27 @@ integration = function(integration_parameters, Xdata, Ydata) {
   plotdata2 = data.frame(Xdata, Ydata)
   plotdata3 <- melt(plotdata2, id = "Xdata")
   plotdata3$variable = rep('Original Spectrum', length(Ydata))
-    plotdata4 = data.frame(Xdata, integrated_signal)
+  plotdata4 = data.frame(Xdata, integrated_signal)
   plotdata5 = melt(plotdata4, id = "Xdata")
-  ggplot() +
+  p=ggplot() +
     geom_line(data = plotdata3,
-              aes(
-                x = Xdata,
-                y = value,
-                colour = variable,
-                group = variable
-              )) +
-    # geom_line(data = plotdata5,
-    #           aes(
-    #             x = Xdata,
-    #             y = value,
-    #             colour = 'subfraccions',
-    #             group = variable
-    #           )) +
+      aes(
+        x = Xdata,
+        y = value,
+        colour = variable,
+        group = variable
+      )) +
+    
     geom_area(data = plotdata,
-              aes(
-                x = Xdata,
-                y = senyal,
-                position = 'fill',
-                fill = 'Quantified Signal'
-              )) +
+      aes(
+        x = Xdata,
+        y = senyal,
+        position = 'fill',
+        fill = 'Quantified Signal'
+      )) +
     scale_x_reverse()
-  ggsave(
-    file.path(integration_parameters$plot_path, 'Fit.jpeg'),
-    width = 10,
-    height = 5
-  )
+  
+  fa=list(results_to_save=output,p=p)
 
-
-  return(output)
+  return(fa)
 }

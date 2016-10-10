@@ -1,11 +1,10 @@
-signals_int = function(autorun_data, finaloutput,ROI_profile,input,signals_introduce) {
+signals_int = function(autorun_data, finaloutput,input,signals_introduce) {
   
   
     #Preparation of necessary variables and folders to store figures and information of the fitting
-  if(is.null(input$x1_rows_selected)) {spectrum_index=1
-  } else {spectrum_index=input$x1_rows_selected}
+  spectrum_index=input$x1_rows_selected
   
-  ROI_buckets=which(round(autorun_data$ppm,6)==round(ROI_profile[1,1],6)):which(round(autorun_data$ppm,6)==round(ROI_profile[1,2],6))
+  ROI_buckets=which(round(autorun_data$ppm,6)==round(input$num1,6)):which(round(autorun_data$ppm,6)==round(input$num2,6))
   Xdata= as.numeric(autorun_data$ppm[ROI_buckets])
     Ydata = as.numeric(autorun_data$dataset[spectrum_index, ROI_buckets])
     other_fit_parameters = fitting_variables()
