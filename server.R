@@ -9,7 +9,7 @@ packages_sources()
 library(minpack.lm)
 source('sign_par.R')
 source('signals_int.R')
-
+library(shinyjs)
 # 
 # 
 # edits <- data.frame(Row = c("", ""), Column = (c("", "")), Value = (c("", "")), stringsAsFactors = FALSE);
@@ -25,7 +25,8 @@ shinyServer(function(input, output,session) {
   sell <- reactiveValues(mtcars=NULL);
   observeEvent(input$select, {
    sell$mtcars=ROI_data[ROI_separator[, 1][as.numeric(input$select)]:(ROI_separator[, 1][as.numeric(input$select)+1]-1),]
- 
+  reset("mtcars_edit")
+  print(input$mtcars_edit)
   # print(input$select)
   # print(sell$mtcars)
   v$blah=NULL
@@ -33,13 +34,11 @@ shinyServer(function(input, output,session) {
   sell$stop=1
   sell$change2=1
   sell$stop2=0
-  sell$roi=1
-  # if(is.null(input$mtcars_edit)) {
-  #   sell$roi=0
-  # } else {
-  #   sell$roi=1
-  # }
+  sell$roi=0
+  
+  # sell$roi=1
 
+  
   # attr(input, "readonly") <- FALSE
   # input$mtcars_edit <- NULL
   revals$mtcars <- sell$mtcars;
@@ -64,11 +63,16 @@ shinyServer(function(input, output,session) {
     );
     
     observe({
-      if(is.null(input$mtcars_edit)|(sell$stop==1)) {
+      print(sell$roi)
+      print(sell$stop)
+      print(sell$change)
+      if(sell$stop==1) {
+        # if(sell$roi==0) {
         sell$change=0
         print('step1')
         return(NULL);
-      } 
+      # } 
+      }
       edit <- input$mtcars_edit;
       # print(sell$roi)
       # if (sell$roi==1) {
@@ -80,6 +84,7 @@ shinyServer(function(input, output,session) {
         id <- edit$id;
         row <- as.integer(edit$row);
         col <- as.integer(edit$col);
+        print(col)
         val <- edit$val;
         
         # validate input 
@@ -111,20 +116,26 @@ shinyServer(function(input, output,session) {
           # rownames(revals$mtcars)[row] <- val;
           
           # sell$change=0
-          sell$change=0
-          sell$stop=2
+          
+          sell$change2=0
+          sell$stop2=1          # sell$stop=1
+          # sell$roi=0
+          
           print('step2')
           
           # return(NULL);
           
         } else{
           print('step3')
+          # sell$change=1
+          if (length(col)==0) col=0
           print(col)
+          
 # accept edits
         if(col == 0) {
-          rownames(revals$mtcars)[row] <- val;
-        } else if (col %in% c(1:2,5:11)) {
-          print(val)
+          # revals$mtcars=revals$mtcars
+          } else if (col %in% c(1:2,5:11)) {
+          # print(val)
           revals$mtcars[row, col] <- as.numeric(val);
           # val = round(as.numeric(val), 3)
 
@@ -134,7 +145,7 @@ shinyServer(function(input, output,session) {
           
         }
         # confirm edits
-        print(id)
+        # print(id)
           confirmEdit(session, tbl = "mtcars", row = row, col = col, id = id, value = val);
         # revals$edits["Success", "Row"] <- row;
         # revals$edits["Success", "Column"] <- col;
