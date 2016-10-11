@@ -25,17 +25,20 @@ shinyServer(function(input, output,session) {
   sell <- reactiveValues(mtcars=NULL);
   observeEvent(input$select, {
    sell$mtcars=ROI_data[ROI_separator[, 1][as.numeric(input$select)]:(ROI_separator[, 1][as.numeric(input$select)+1]-1),]
-  reset("mtcars_edit")
-  print(input$mtcars_edit)
+  # reset("mtcars_edit")
+  # print(input$mtcars_edit)
   # print(input$select)
   # print(sell$mtcars)
   v$blah=NULL
   sell$change=1
-  sell$stop=1
+  sell$stop=0
   sell$change2=1
   sell$stop2=0
   sell$roi=0
-  
+  print(sell$roi)
+  shinyjs::reset("mtcars")
+  shinyjs::reset("mtcars_edit")
+ 
   # sell$roi=1
 
   
@@ -66,49 +69,41 @@ shinyServer(function(input, output,session) {
       print(sell$roi)
       print(sell$stop)
       print(sell$change)
-      if(sell$stop==1) {
+      if(is.null(input$mtcars_edit)|(sell$stop==1&sell$roi==0)) {
         # if(sell$roi==0) {
         sell$change=0
+        sell$roi=1
         print('step1')
         return(NULL);
       # } 
       }
       edit <- input$mtcars_edit;
+      # sell$change=1
+      if ( sell$roi==0 ) {
+edit=NULL
+
+sell$roi=1
+      }
+
       # print(sell$roi)
       # if (sell$roi==1) {
       #   edit=NULL
       #   sell$roi=0
       # }
       isolate({
-        
         id <- edit$id;
         row <- as.integer(edit$row);
         col <- as.integer(edit$col);
-        print(col)
+        # print(col)
         val <- edit$val;
+        
+        
         
         # validate input 
         # if(col == 0) {
         #   # rownames
         #   oldval <- rownames(revals$mtcars)[row];
-        #   if(grepl('^\\d', val)) {
-        #     # rejectEdit(session, tbl = "mtcars", row = row, col = col,  id = id, value = oldval);
-        #     # revals$edits["Fail", "Row"] <- row;
-        #     # revals$edits["Fail", "Column"] <- col;
-        #     # revals$edits["Fail", "Value"] <- val;
-        #     # return(NULL);
-        #   }
-        # } else if (col %in% c(5:11)){
-        #   # numeric columns
-        #   if(is.na(suppressWarnings(as.numeric(val)))) {
-        #     oldval <- revals$mtcars[row, col];
-        #     # reset to the old value
-        #     # input will turn red briefly, than fade to previous color while
-        #     # text returns to previous value
-        #   #   rejectEdit(session, tbl = "mtcars", row = row, col = col, id = id, value = oldval);
-        #   #   revals$edits["Fail", "Row"] <- row;
-        #   #   revals$edits["Fail", "Column"] <- col;
-        #   #   revals$edits["Fail", "Value"] <- val;
+        
         #   #   return(NULL);
         #    } 
         # } 
@@ -117,8 +112,8 @@ shinyServer(function(input, output,session) {
           
           # sell$change=0
           
-          sell$change2=0
-          sell$stop2=1          # sell$stop=1
+          sell$change=0
+          sell$stop=1          # sell$stop=1
           # sell$roi=0
           
           print('step2')
@@ -126,14 +121,18 @@ shinyServer(function(input, output,session) {
           # return(NULL);
           
         } else{
+
           print('step3')
-          # sell$change=1
-          if (length(col)==0) col=0
-          print(col)
+          # # sell$change=1
+          # if (length(col)==0 | sell$roi==0) {
+          #   col=0
+          #   sell$roi=1
+          # }
+          # print(col)
           
 # accept edits
         if(col == 0) {
-          # revals$mtcars=revals$mtcars
+          # revals$mtcars=sell$mtcars
           } else if (col %in% c(1:2,5:11)) {
           # print(val)
           revals$mtcars[row, col] <- as.numeric(val);
@@ -164,6 +163,8 @@ shinyServer(function(input, output,session) {
     
   })
   })
+  
+  
   # mtcars3=input$mtcars2_edit
   
   
@@ -287,6 +288,8 @@ shinyServer(function(input, output,session) {
     # else v$p <- autorun(autorun_data, finaloutput,input,revals$mtcars) 
     # print(revals$mtcars)
     v$blah <- autorun(autorun_data, finaloutput, input,revals$mtcars) 
+    sell$roi=1
+    
     # v$stop3=1
     
     # print(v$blah$plot_path)
@@ -325,8 +328,8 @@ shinyServer(function(input, output,session) {
       # return()
     dataset=rbind(autorun_data$dataset,colMeans(autorun_data$dataset),apply(autorun_data$dataset,2,median))
     rownames(dataset)[(dim(autorun_data$dataset)[1]+1):dim(dataset)[1]]=c('Mean spectrum', 'Median spectrum')
-    lol=which(round(autorun_data$ppm,6)==round(revals$mtcars[1,1],6))
-    lol2=which(round(autorun_data$ppm,6)==round(revals$mtcars[1,2],6))
+    lol=which(round(autorun_data$ppm,6)==round(sell$mtcars[1,1],6))
+    lol2=which(round(autorun_data$ppm,6)==round(sell$mtcars[1,2],6))
 
     plotdata = data.frame(Xdata=autorun_data$ppm[lol:lol2], t(dataset[input$x1_rows_selected,lol:lol2,drop=F]))
     # 
