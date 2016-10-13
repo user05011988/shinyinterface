@@ -421,19 +421,21 @@ shinyServer(function(input, output,session) {
     # print(input$x1_select)
     if (is.null(v$blah)|length(input$x1_rows_selected)>1) {
       # return()
-      
+      # 
       lol=which(round(autorun_data$ppm,6)==round(sell$mtcars[1,1],6))
       lol2=which(round(autorun_data$ppm,6)==round(sell$mtcars[1,2],6))
-      
-      # plotdata = data.frame(Xdata=autorun_data$ppm[lol:lol2], t(dataset[input$x1_select,lol:lol2,drop=F]))
-      plotdata = data.frame(Xdata=autorun_data$ppm[lol:lol2], t(dataset[input$x1_rows_selected,lol:lol2,drop=F]))
+
+    
+      # plotdata = data.frame(Xdata=autorun_data$ppm[lol:lol2], t(dataset[input$x1_rows_selected,lol:lol2,drop=F]))
+      plotdata = data.frame(Xdata=autorun_data$ppm, t(dataset[input$x1_rows_selected,,drop=F]))
       # 
       # plot_ly(data=plotdata,x=~Xdata,y=~Ydata)
       plotdata3 <- melt(plotdata, id = "Xdata")
-      plot_ly(data=plotdata3,x=~Xdata,y=~value,color=~variable,type='scatter',mode='lines') %>% layout(xaxis = list(autorange = "reversed"))
+      plot_ly(data=plotdata3,x=~Xdata,y=~value,color=~variable,type='scatter',mode='lines') %>% layout(xaxis = list(range = c(round(sell$mtcars[1,1],6), round(sell$mtcars[1,2],6))),yaxis = list(range = c(0, max(dataset[input$x1_rows_selected,lol:lol2]))))
     } else {
       # print('Hey')
-      ggplotly(v$blah$p)
+      ggplotly(v$blah$p) 
+      
       # v$stop3=1
       
     }

@@ -198,7 +198,7 @@ autorun = function(autorun_data, finaloutput,input,ROI_profile,is_autorun) {
             colour = 'Surrounding signals',
             group = variable
           )) +
-        scale_x_reverse() + labs(x='ppm',y='Intensity')
+        scale_x_reverse() + labs(x='ppm',y='Intensity') + expand_limits(y=0)
       
      for (r in 1:length(other_fit_parameters$signals_to_quantify)) {
        plotdata = data.frame(Xdata, signals = plot_data[3 + other_fit_parameters$signals_to_quantify[r], ] * max(Ydata))
