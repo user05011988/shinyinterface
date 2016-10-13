@@ -355,6 +355,38 @@ shinyServer(function(input, output,session) {
     
     # })
   })
+  
+  output$fit_error <- renderD3tf({
+    tableProps <- list(
+      btn_reset = TRUE,
+      sort = TRUE,
+      # enableEdit(session, "mtcars", c("col_1", "col_2")),
+      sort_config = list(
+        # alphabetic sorting for the row names column, numeric for all other columns
+        sort_types = c("String", rep("Number", ncol(revals3$mtcars)))
+      )
+    );
+    # observe({
+    bgColScales <- list()
+      for(i in 1:dim(finaloutput$fitting_error)[2]) {
+        bgColScales[[i]] = JS('function colorScale(tbl, i){
+        var color = d3.scale.linear()
+        .domain([0, 7, 14])
+        .range(["#2ee524", "white", "#f20707"]);
+        return color(i);
+      }')
+      }
+    names(bgColScales)=paste0("col_", 0:(dim(finaloutput$fitting_error)[2]-1))
+    
+    d3tf(round(finaloutput$fitting_error,2),
+      tableProps = tableProps,
+      edit=F,
+      showRowNames = T,
+      bgColScales = bgColScales,
+      tableStyle = "table table-bordered");
+    
+    # })
+  })
   dataset=rbind(autorun_data$dataset,colMeans(autorun_data$dataset),apply(autorun_data$dataset,2,median))
   rownames(dataset)[(dim(autorun_data$dataset)[1]+1):dim(dataset)[1]]=c('Mean spectrum', 'Median spectrum')
   mm=matrix(NA,2,dim(autorun_data$Metadata)[2])

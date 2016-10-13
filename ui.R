@@ -6,16 +6,13 @@ library(D3TableFilter)
 library(reshape)
 
 shinyUI(fluidPage(
-  titlePanel("stockVis"),
+  title = 'Interactive features',
+  tabsetPanel(
+    tabPanel("Editing and filtering",
 
   sidebarLayout(
     sidebarPanel(
       
-
-      
-        # numericInput(inputId="num1", label="Left limit", value = 4.09,step=0.0001,width='50%'),
-        # numericInput(inputId="num2", label="Right limit", value = 4.035,step=0.0001,width='50%'),
-        # 
       actionButton("save_results", label = "Save results"),
       actionButton("save_profile", label = "Save profile"),
       actionButton("autorun", label = "autorun"),
@@ -36,5 +33,14 @@ shinyUI(fluidPage(
     
 
     mainPanel(plotlyOutput("plot")))
+    ),
+  tabPanel("Row selection",
+    fluidRow(column(width = 12, h4("Row selection"))),
+    fluidRow(
+      column(width = 12,
+        d3tfOutput('fit_error')
+      )
+    
+  )
   
-))
+))))
