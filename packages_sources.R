@@ -9,6 +9,8 @@ packages_sources = function() {
   requireNamespace("robust", quietly = TRUE)
   requireNamespace("apcluster", quietly = TRUE)
   requireNamespace("rio", quietly = TRUE)
+  library(shinyjs)
+  
 
   source("peakpvoigt.R")
   source("fitting_optimization.R")

@@ -1,9 +1,13 @@
-autorun = function(autorun_data, finaloutput,input,ROI_profile) {
+autorun = function(autorun_data, finaloutput,input,ROI_profile,is_autorun) {
   blah=list()
   
     #Preparation of necessary variables and folders to store figures and information of the fitting
-  spectrum_index=input$x1_rows_selected
+  if (is_autorun=='N') {indexes=input$x1_select
+  } else {
+    indexes=1:dim(autorun_data$dataset)[1]
+  }
   # print(ROI_profile)
+  for (spectrum_index in indexes) {
   ROI_buckets=which(round(autorun_data$ppm,6)==round(ROI_profile[1,1],6)):which(round(autorun_data$ppm,6)==round(ROI_profile[1,2],6))
   # print(ROI_buckets)
   Xdata= as.numeric(autorun_data$ppm[ROI_buckets])
@@ -141,7 +145,7 @@ autorun = function(autorun_data, finaloutput,input,ROI_profile) {
       results_to_save$Area = results_to_save$Area * max(Ydata)      
 
       #Generation of the figure when the conditions specified in the Parameters file are accomplished
-      r=1
+      # r=1
       plot_data = rbind(
         output_data$signals_sum,
         output_data$baseline_sum,
@@ -153,8 +157,8 @@ autorun = function(autorun_data, finaloutput,input,ROI_profile) {
                               "fitted_sum",
                               as.character(ROI_profile[,1]))
 
-      # plotdata = data.frame(Xdata=autorun_data$ppm[ROI_buckets], t(dataset[input$x1_rows_selected,ROI_buckets,drop=F]))
-      plotdata = data.frame(Xdata, signals = plot_data[3 + other_fit_parameters$signals_to_quantify[r], ] * max(Ydata))
+      # plotdata = data.frame(Xdata=autorun_data$ppm[ROI_buckets], t(dataset[input$x1_select,ROI_buckets,drop=F]))
+     
       plotdata2 = data.frame(Xdata,
         Ydata,
         plot_data[3, ] * max(Ydata),
@@ -193,6 +197,11 @@ autorun = function(autorun_data, finaloutput,input,ROI_profile) {
             colour = 'Surrounding signals',
             group = variable
           )) +
+        scale_x_reverse() + labs(x='ppm',y='Intensity')
+      
+     for (r in 1:length(other_fit_parameters$signals_to_quantify)) {
+       plotdata = data.frame(Xdata, signals = plot_data[3 + other_fit_parameters$signals_to_quantify[r], ] * max(Ydata))
+     p=p +
         geom_area(
           data = plotdata,
           aes(
@@ -201,11 +210,12 @@ autorun = function(autorun_data, finaloutput,input,ROI_profile) {
             position = 'fill',
             fill = 'Quantified Signal'
           )
-        ) +
-        scale_x_reverse() + labs(x='ppm',y='Intensity')
+        ) 
+     }
   
    
     signals_parameters=t(rbind(signals_parameters,multiplicities,roof_effect))
+    print(signals_parameters)
     blah$signals_parameters=signals_parameters
     blah$other_fit_parameters=other_fit_parameters
     blah$results_to_save=results_to_save
@@ -219,12 +229,19 @@ autorun = function(autorun_data, finaloutput,input,ROI_profile) {
     }
     blah$p=p
     blah$plot_path=plot_path
-    
-    # blah$finaloutput=finaloutput
     blah$results_to_save=results_to_save
     blah$spectrum_index=spectrum_index
     blah$signals_codes=signals_codes
     blah$fitting_type=fitting_type
+    
+    if (is_autorun=='Y') {
+      save_roi_testing(blah,autorun_data, finaloutput)
+      print('New')
+    }
+  }
+    
+    # blah$finaloutput=finaloutput
+    
     
     # blah$autorun_data=autorun_data
   return(blah)

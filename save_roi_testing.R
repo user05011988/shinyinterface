@@ -8,7 +8,7 @@ save_roi_testing=function(blah,autorun_data,final_output) {
   plot_path=blah$plot_path
   
   
-  print(plot_path)
+  # print(plot_path)
 # list2env(blah,.GlobalEnv)
 if (fitting_type == "Clean Sum" ||
     fitting_type == "Baseline Sum") {

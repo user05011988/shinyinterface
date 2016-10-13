@@ -19,14 +19,15 @@ import_data = function(parameters_path) {
   #Getting the names of experiments, signals and ROIs to quantify and use
   metadata_path = as.character(import_profile[3, 2])
 
-  Experiments = read.delim(
+  dummy = read.delim(
     metadata_path,
     sep = ';',
     header = T,
     stringsAsFactors = F
-  )[, 1]
+  )
+  Experiments=dummy[,1]
   Experiments = as.vector(Experiments[Experiments != ''])
-
+  Metadata=dummy[,-1]
   # signals_names = read.delim(as.character(import_profile[6, 2]),
   #                            header = F,
   #                            stringsAsFactors = F)[, 1]
@@ -102,7 +103,7 @@ import_data = function(parameters_path) {
     params$disol_suppression = 'N'
   } else {
     params$disol_suppression = 'Y'
-    params$disol_suppression_ppm = as.numeric(strsplit(suppression, ';|,')[[1]])
+    params$disol_suppression_ppm = as.numeric(strsplit(suppression, '-|,')[[1]])
     dim(params$disol_suppression_ppm) = c(length(params$disol_suppression_ppm) /
                                             2, 2)
     params$disol_suppression_ppm = t(params$disol_suppression_ppm)
@@ -157,6 +158,7 @@ import_data = function(parameters_path) {
   imported_data$P_max = P_max
   imported_data$export_path = export_path
   imported_data$freq = freq
+  imported_data$Metadata=Metadata
 
   return(imported_data)
 

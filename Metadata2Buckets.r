@@ -192,7 +192,7 @@ Metadata2Buckets <- function(Experiments, params) {
       # zones a l'hora de calcular l'àrea si cal eliminem l'aigua if
       
       if (toupper(disol_suppression) == "Y") {
-        for (nunrows in 1:D_rows) {
+        for (nunrows in 1:dim(RAW$disol_suppression_bucks)[1]) {
           tmp_buck[RAW$disol_suppression_bucks[nunrows, 1]:RAW$disol_suppression_bucks[nunrows,
                                                                                        2]] = 0
         }
