@@ -1,12 +1,15 @@
 library(ggplot2)
 library(plotly)
-# library(DT)
+library(DT)
 library(D3TableFilter)
-source('packages_sources.R')
-packages_sources()
+# source('packages_sources.R')
+# packages_sources()
 library(minpack.lm)
 source('sign_par.R')
 source('signals_int.R')
+source("autorun.R")
+source("save_roi_testing.R")
+
 # library(shinyjs)
 # 
 # 
@@ -41,13 +44,15 @@ shinyServer(function(input, output,session) {
     
     revals$mtcars <- sell$mtcars;
     revals2$mtcars <- rbind(rep(NA,7),rep(NA,7));
+    colnames(revals2$mtcars)=c("intensity",	"shift",	"width",	"gaussian",	"J_coupling",	"multiplicities",	"roof_effect")
     revals3$mtcars <- rbind(rep(NA,3),rep(NA,3));
+    colnames(revals3$mtcars)=c('Quantification','fitting error','signal/total area ratio')
     revals$rowIndex <- 1:nrow(sell$mtcars);
     
     output$mtcars <- renderD3tf({
       
       tableProps <- list(
-        btn_reset = TRUE,
+        btn_reset = F,
         sort = TRUE,
         sort_config = list(
           sort_types = c("String", rep("Number", ncol(sell$mtcars)))
@@ -148,7 +153,7 @@ shinyServer(function(input, output,session) {
       
       d3tf(sell$mtcars,
         tableProps = tableProps,
-        showRowNames = F,
+        enableTf = F,
         edit=TRUE,
         
         tableStyle = "table table-bordered");
@@ -254,7 +259,7 @@ shinyServer(function(input, output,session) {
     
     d3tf(revals2$mtcars,
       tableProps = tableProps,
-      showRowNames = F,
+      enableTf = F,
       edit=TRUE,
       
       tableStyle = "table table-bordered");
@@ -265,7 +270,10 @@ shinyServer(function(input, output,session) {
   
   observeEvent(input$action, {
     is_autorun='N'
-    
+    if (length(input$x1_rows_selected)>1|input$x1_rows_selected>dim(autorun_data$dataset)[1]) {
+      print('Select one valid spectrum')
+      return(NULL)
+    }
     # if(is.null(revals$rowIndex)) return(invisible());    
     # if(is.null(revals$mtcars)) v$p <- autorun(autorun_data, finaloutput,input,mtcars) 
     # else v$p <- autorun(autorun_data, finaloutput,input,revals$mtcars) 
@@ -333,88 +341,92 @@ shinyServer(function(input, output,session) {
       # enableEdit(session, "mtcars", c("col_1", "col_2")),
       sort_config = list(
         # alphabetic sorting for the row names column, numeric for all other columns
-        sort_types = c("String", rep("Number", ncol(revals2$mtcars)))
+        sort_types = c("String", rep("Number", ncol(revals3$mtcars)))
       )
     );
     # observe({
     
     d3tf(revals3$mtcars,
       tableProps = tableProps,
-      showRowNames = F,
+      enableTf = F,
       edit=F,
       
       tableStyle = "table table-bordered");
     
     # })
   })
-  
-  ll=c(autorun_data$Experiments,'Mean spectrum', 'Median spectrum')
-  spectra=cbind(ll,rep(c(1,2),length(ll)/2))
+  dataset=rbind(autorun_data$dataset,colMeans(autorun_data$dataset),apply(autorun_data$dataset,2,median))
+  rownames(dataset)[(dim(autorun_data$dataset)[1]+1):dim(dataset)[1]]=c('Mean spectrum', 'Median spectrum')
+  mm=matrix(NA,2,dim(autorun_data$Metadata)[2])
+  colnames(mm)=colnames(autorun_data$Metadata)
+  spectra=cbind(as.matrix(rownames(dataset)),rbind(autorun_data$Metadata,mm))
   # rownames(spectra)=ll
-  colnames(spectra)=c('spectrum','Group')
+  colnames(spectra)[1]='spectrum'
   
-  # output$x1 = DT::renderDataTable(
+  output$x1 = DT::renderDataTable(
+
+    spectra , selection = list(mode = 'multiple', selected = 1),server = T)
+  
+  
+  
+  # output$x1 <- renderD3tf({
   #   
-  #   spectra , selection = list(mode = 'multiple', selected = 1),server = T)
-  
-  output$x1 <- renderD3tf({
-    
-    # define table properties. See http://tablefilter.free.fr/doc.php
-    # for a complete reference
-    tableProps <- list(
-      btn_reset = TRUE,
-      rows_counter = TRUE,  
-      rows_counter_text = "Rows: ",
-      # sort = TRUE,
-      on_keyup = TRUE,  
-      on_keyup_delay = 800,
-      # sort_config = list(
-      #   sort_types = c("Number", "Number")
-      # ),
-      filters_row_index = 1
-      # adding a summary row, showing the column means
-      # rows_always_visible = list(nrow(mtcars) + 2),
-      # col_operation = list( 
-      #   id = list("frow_0_fcol_1_tbl_x1","frow_0_fcol_2_tbl_x1"),    
-      #   col = list(1,2),    
-      #   operation = list("mean","mean"),
-      #   write_method = list("innerhtml",'innerhtml'),  
-        # exclude_row = list(nrow(mtcars) + 2),  
-        # decimal_precision = list(1, 1)
-      # )
-    );
-    
-    # add a summary row. Can be used to set values statically, but also to 
-    # make use of TableFilters "col_operation"
-    # footData <- data.frame(Rownames = "Mean", mpg = 0, cyl = 0);
-    
-    d3tf(spectra,
-      enableTf = F,
-      tableProps = tableProps,
-      showRowNames = F, 
-      selectableRows = "multi",
-      selectableRowsClass = "info",
-      tableStyle = "table table-bordered table-condensed",
-      # rowStyles = c(rep("", 7), rep("info", 7)),
-      # filterInput = TRUE,
-      # footData = footData,
-      height = 500);
-  })
+  #   # define table properties. See http://tablefilter.free.fr/doc.php
+  #   # for a complete reference
+  #   tableProps <- list(
+  #     btn_reset = TRUE,
+  #     rows_counter = TRUE,  
+  #     rows_counter_text = "Rows: ",
+  #     # sort = TRUE,
+  #     on_keyup = TRUE,  
+  #     on_keyup_delay = 800,
+  #     # sort_config = list(
+  #     #   sort_types = c("Number", "Number")
+  #     # ),
+  #     filters_row_index = 1
+  #     # adding a summary row, showing the column means
+  #     # rows_always_visible = list(nrow(mtcars) + 2),
+  #     # col_operation = list( 
+  #     #   id = list("frow_0_fcol_1_tbl_x1","frow_0_fcol_2_tbl_x1"),    
+  #     #   col = list(1,2),    
+  #     #   operation = list("mean","mean"),
+  #     #   write_method = list("innerhtml",'innerhtml'),  
+  #       # exclude_row = list(nrow(mtcars) + 2),  
+  #       # decimal_precision = list(1, 1)
+  #     # )
+  #   );
+  #   
+  #   # add a summary row. Can be used to set values statically, but also to 
+  #   # make use of TableFilters "col_operation"
+  #   # footData <- data.frame(Rownames = "Mean", mpg = 0, cyl = 0);
+  #   
+  #   d3tf(spectra,
+  #     enableTf = F,
+  #     tableProps = tableProps,
+  #     showRowNames = F, 
+  #     selectableRows = "multi",
+  #     selectableRowsClass = "info",
+  #     tableStyle = "table table-bordered table-condensed",
+  #     # rowStyles = c(rep("", 7), rep("info", 7)),
+  #     # filterInput = TRUE,
+  #     # footData = footData,
+  #     height = 500);
+  # })
   
   # spectra ,server = FALSE)
   
   output$plot <- renderPlotly({
     # print(is.null(v$blah))
     # if(input$x1_select)
-    print(input$x1_select)
-    if (is.null(v$blah)) {
+    # print(input$x1_select)
+    if (is.null(v$blah)|length(input$x1_rows_selected)>1) {
       # return()
-      dataset=rbind(autorun_data$dataset,colMeans(autorun_data$dataset),apply(autorun_data$dataset,2,median))
-      rownames(dataset)[(dim(autorun_data$dataset)[1]+1):dim(dataset)[1]]=c('Mean spectrum', 'Median spectrum')
+      
       lol=which(round(autorun_data$ppm,6)==round(sell$mtcars[1,1],6))
       lol2=which(round(autorun_data$ppm,6)==round(sell$mtcars[1,2],6))
       
-      plotdata = data.frame(Xdata=autorun_data$ppm[lol:lol2], t(dataset[input$x1_select,lol:lol2,drop=F]))
+      # plotdata = data.frame(Xdata=autorun_data$ppm[lol:lol2], t(dataset[input$x1_select,lol:lol2,drop=F]))
+      plotdata = data.frame(Xdata=autorun_data$ppm[lol:lol2], t(dataset[input$x1_rows_selected,lol:lol2,drop=F]))
       # 
       # plot_ly(data=plotdata,x=~Xdata,y=~Ydata)
       plotdata3 <- melt(plotdata, id = "Xdata")

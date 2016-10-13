@@ -25,7 +25,8 @@ shinyUI(fluidPage(
         choices = select_options, 
         selected = 1),
       
-      D3TableFilter::d3tfOutput('x1'),
+      # D3TableFilter::d3tfOutput('x1'),
+      DT::dataTableOutput('x1'),
       D3TableFilter::d3tfOutput('mtcars'),
       D3TableFilter::d3tfOutput('mtcars2'),
       D3TableFilter::d3tfOutput('mtcars3')

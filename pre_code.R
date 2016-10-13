@@ -1,6 +1,6 @@
 #TO DO: save parameters of imported_data not exported to autorun_data in separate list
 
-setwd("C:/Users/user/Downloads/shinyinterface-5d5de725082eba23eea719ceb1066ae5bb836671")
+setwd("C:/Users/user/Documents/Dolphin/R")
 
 source('packages_sources.R')
 packages_sources()
@@ -77,9 +77,14 @@ autorun_data = list(
   signals_codes = imported_data$signals_codes,
   Experiments = imported_data$Experiments,
   export_path = imported_data$export_path,
-  freq = imported_data$freq
+  freq = imported_data$freq,
+  Metadata=imported_data$Metadata
 )
 rm(imported_data)
+
+setwd("C:/Users/user/Downloads/shinyinterface-5d5de725082eba23eea719ceb1066ae5bb836671")
+
+
 ROI_data = read.csv(autorun_data$profile_folder_path, sep = ";",stringsAsFactors = F)
 dummy = which(!is.na(ROI_data[, 1]))
 ROI_separator = cbind(dummy, c(dummy[-1] - 1, dim(ROI_data)[1]))
