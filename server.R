@@ -8,6 +8,8 @@ source('sign_par.R')
 source('signals_int.R')
 source("autorun.R")
 source("save_roi_testing.R")
+source("remove_quant.R")
+
 
 shinyServer(function(input, output,session) {
   revals <- reactiveValues();
@@ -18,6 +20,9 @@ shinyServer(function(input, output,session) {
   
   sell <- reactiveValues(mtcars=NULL);
   observeEvent(input$select, {
+    # print(input$quant_selection_cell_clicked)
+    # print(input$quant_selection_cells_selected)
+    # 
     sell$mtcars=ROI_data[ROI_separator[, 1][as.numeric(input$select)]:(ROI_separator[, 1][as.numeric(input$select)+1]-1),]
     
     v$blah=NULL
@@ -26,7 +31,7 @@ shinyServer(function(input, output,session) {
     sell$change2=1
     sell$stop2=0
     sell$roi=0
-    print(sell$roi)
+    # print(sell$roi)
     # shinyjs::reset("mtcars")
     # shinyjs::reset("mtcars_edit")
     # session$sendCustomMessage(type = "resetValue", message = "mtcars_edit")
@@ -230,11 +235,19 @@ shinyServer(function(input, output,session) {
           v$meh=signals_int(autorun_data, finaloutput,input,revals2$mtcars,revals$mtcars) 
           v$stop3=1
           
-          
           revals3$mtcars=cbind(v$meh$results_to_save$Area,v$meh$results_to_save$fitting_error,v$meh$results_to_save$signal_area_ratio)
           v$blah$signals_parameters=v$meh$signals_parameters
+          v$blah$results_to_save=v$meh$results_to_save
+          v$blah$other_fit_parameters=v$meh$other_fit_parameters
+          # print(v$blah$other_fit_parameters)
           v$blah$p=v$meh$p
+          v$blah$Xdata=v$meh$Xdata
+          v$blah$Ydata=v$meh$Ydata
           v$blah$finaloutput=v$meh$finaloutput
+          v$blah$fitting_type=v$meh$fitting_type
+          v$blah$plot_path=v$meh$plot_path
+          v$blah$import_excel_profile=v$meh$ROI_profile
+          
         }
         # confirm edits
         #   revals2$edits["Success", "Row"] <- row;
@@ -293,6 +306,96 @@ shinyServer(function(input, output,session) {
     
   })
   
+  observeEvent(input$quant_selection_cell_clicked, {
+    # print(input$quant_selection_cells_selected)
+    info=input$quant_selection_cell_clicked
+    is_autorun='N'
+    if (length(info$row)!=1) {
+      # print('Select only one quantification')
+      return(NULL)
+    }
+    # print(info$row)
+    # print(info$col)
+    path=paste(autorun_data$export_path,autorun_data$Experiments[info$row],autorun_data$signals_names[info$col],sep='/')
+    # path=paste(autorun_data$export_path,autorun_data$Experiments[2],autorun_data$signals_names[4],sep='/')
+    
+    Xdata=as.numeric(import(file.path(path,'Xdata.csv'))[,-1])
+    Ydata=as.numeric(import(file.path(path,'Ydata.csv'))[,-1])
+    dummy=import(file.path(path,'plot_data.csv'))
+    plot_data=as.matrix(dummy[,-1])
+    other_fit_parameters=as.list(import(file.path(path,'other_fit_parameters.csv'))[1,])
+    ROI_profile=import(file.path(path,'import_excel_profile.csv'))[,-1,drop=F]
+    other_fit_parameters$signals_to_quantify=ROI_profile[,7]
+    
+    
+    
+    
+    plotdata2 = data.frame(Xdata=Xdata,
+      Ydata=Ydata,
+      plot_data[3, ] * max(Ydata),
+      plot_data[2, ] * max(Ydata))
+    colnames(plotdata2)=c('Xdata','Ydata',"fitted_sum","baseline_sum")
+    plotdata3 <- melt(plotdata2, id = "Xdata")
+    plotdata3$variable = c(
+      rep('Original Spectrum', length(Ydata)),
+      rep('Generated Spectrum', length(Ydata)),
+      rep('Generated Background', length(Ydata))
+    )
+    plotdata4 = data.frame(Xdata, (t(plot_data[-c(1, 2, 3), , drop = F]) *
+        max(Ydata)))
+    colnames(plotdata4)=c('Xdata',dummy[-c(1, 2, 3),1])
+    
+    plotdata5 = melt(plotdata4, id = "Xdata")
+    # p=plot_ly(data=plotdata3,x=~Xdata,y=~value,color=~variable,type='scatter',mode='lines') %>% layout(xaxis = list(autorange = "reversed"))
+    # p <- add_trace(p,data=plotdata5,x = ~Xdata,
+    #   y = ~value,
+    #   colour = 'Surrounding signals',
+    #   group = ~variable)
+    # p <- add_trace(p,data=plotdata5,x = ~Xdata,
+    #   y = ~value,
+    #   colour = 'Surrounding signals',
+    #   group = ~variable)
+    # plot_ly(data=plotdata3,x=~Xdata,y=~value,color=~variable,type='scatter',mode='lines') %>% layout(xaxis = list(autorange = "reversed"))
+    p=ggplot() +
+      geom_line(data = plotdata3,
+        aes(
+          x = Xdata,
+          y = value,
+          colour = variable,
+          group = variable
+        )) +
+      geom_line(data = plotdata5,
+        aes(
+          x = Xdata,
+          y = value,
+          colour = 'Surrounding signals',
+          group = variable
+        )) +
+      scale_x_reverse() + labs(x='ppm',y='Intensity') + expand_limits(y=0)
+    
+    for (r in 1:length(other_fit_parameters$signals_to_quantify)) {
+      plotdata = data.frame(Xdata, signals = plot_data[3 + other_fit_parameters$signals_to_quantify[r], ] * max(Ydata))
+      # colnames(plotdata)=c('Xdata','signals')
+      # print(plotdata)
+      v$blah$p=p +
+        geom_area(
+          data = plotdata,
+          aes(
+            x = Xdata,
+            y = signals,
+            position = 'fill',
+            fill = 'Quantified Signal'
+          )
+        ) 
+    }
+    revals$mtcars=ROI_profile
+    par=t(import(file.path(path,'signals_parameters.csv'))[,-1])
+    revals2$mtcars=cbind(par,ROI_profile[,c(8,10)])
+    revals3$mtcars=cbind(finaloutput$Area[info$row,info$col],finaloutput$fitting_error[info$row,info$col],finaloutput$signal_area_ratio[info$row,info$col])
+    
+    
+  })
+  
   observeEvent(input$autorun, {
     
     # if(is.null(revals$rowIndex)) return(invisible());    
@@ -306,9 +409,22 @@ shinyServer(function(input, output,session) {
     
     
   })
+  
+  observeEvent(input$remove_q, {
+    
+    # if(is.null(revals$rowIndex)) return(invisible());    
+    # if(is.null(revals$mtcars)) v$p <- autorun(autorun_data, finaloutput,input,mtcars) 
+    # else v$p <- autorun(autorun_data, finaloutput,input,revals$mtcars) 
+    finaloutput <- remove_quant(input,autorun_data, finaloutput) 
+    
+    
+
+    
+  })
   is_autorun='Y'
   # } 
   observeEvent(input$save_results, {
+    print('step')
     if (!is.null(v$blah))
       save_roi_testing(v$blah,autorun_data, finaloutput) 
     
@@ -392,7 +508,7 @@ shinyServer(function(input, output,session) {
   
   output$p_value_final = DT::renderDataTable(round(p_value_final,3),selection = list(mode = 'multiple', selected = 1),server = T)
   
-  output$quant_selection = DT::renderDataTable(round(finaloutput$Area,2),selection = list(target = 'cell'),server = T)
+  output$quant_selection = DT::renderDataTable(round(finaloutput$Area,2),selection = list(mode = 'single', target = 'cell'),server = T)
   
   
   

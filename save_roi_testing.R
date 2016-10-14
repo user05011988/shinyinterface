@@ -7,6 +7,7 @@ save_roi_testing=function(blah,autorun_data,final_output) {
   fitting_type=blah$fitting_type
   plot_path=blah$plot_path
   
+  print(fitting_type)
   
   # print(plot_path)
 # list2env(blah,.GlobalEnv)
@@ -32,8 +33,12 @@ write.csv(
     "Baseline Fitting") {
   signals_parameters=blah$signals_parameters
   other_fit_parameters=blah$other_fit_parameters
+  
   results_to_save=blah$results_to_save
   ROI_profile=blah$import_excel_profile
+  # other_fit_parameters$signals_to_quantify=ROI_profile[,7]
+  
+  
   Ydata=blah$Ydata
   fitted_signals=blah$fitted_signals
   plot_data=blah$plot_data
@@ -45,6 +50,7 @@ write.csv(
   # print(results_to_save$fitting_error)
   # print(other_fit_parameters$signals_to_quantify)
   
+  # print(other_fit_parameters)
 for (r in 1:length(results_to_save$signal_area_ratio)) {
   #There is only creation of plot if the conditions specified in the Parameters file are accomplished
   if (results_to_save$signal_area_ratio[other_fit_parameters$signals_to_quantify[r]] < other_fit_parameters$signal_area_ratio_plot ||

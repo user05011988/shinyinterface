@@ -16,6 +16,7 @@ shinyUI(fluidPage(
       actionButton("save_results", label = "Save results"),
       actionButton("save_profile", label = "Save profile"),
       actionButton("autorun", label = "autorun"),
+      actionButton("remove_q", label = "Remove!"),
       
       actionButton("action", label = "Action"),
       selectInput("select", label = h3("Select box"), 

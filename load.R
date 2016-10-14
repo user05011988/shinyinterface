@@ -3,13 +3,7 @@ autorun = function(autorun_data, finaloutput,input,ROI_profile,is_autorun) {
   
     #Preparation of necessary variables and folders to store figures and information of the fitting
   # if (is_autorun=='N') {indexes=input$x1_select
-  if (is_autorun=='N') {
-    if (is.null(input$quant_selection_cell_clicked$row)) {
-      indexes=input$x1_rows_selected
-    } else {
-      indexes=input$quant_selection_cell_clicked$row
-      
-    }
+  if (is_autorun=='N') {indexes=input$x1_rows_selected
   } else {
     indexes=1:dim(autorun_data$dataset)[1]
   }
