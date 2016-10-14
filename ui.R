@@ -43,4 +43,34 @@ shinyUI(fluidPage(
     
   )
   
-))))
+),
+    tabPanel("Selection",
+      fluidRow(column(width = 12, h4("Selection"))),
+      fluidRow(
+        column(width = 12,
+          DT::dataTableOutput("quant_selection")
+          )
+        
+      )
+      
+    ),
+    
+    tabPanel("p_value",
+  fluidRow(column(width = 12, h4("Row selection"))),
+  fluidRow(
+    column(width = 12,
+      mainPanel(plotlyOutput("plot_p_value")))    ),
+  fluidRow(
+    column(width = 12,
+      mainPanel(DT::dataTableOutput("p_value_final")))    ),
+
+  fluidRow(
+    column(width = 12,
+      mainPanel(plotlyOutput("plot_p_value_2")))    )
+    
+  )
+  
+
+
+    
+    )))

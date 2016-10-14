@@ -2,21 +2,12 @@ library(ggplot2)
 library(plotly)
 library(DT)
 library(D3TableFilter)
-# source('packages_sources.R')
-# packages_sources()
+
 library(minpack.lm)
 source('sign_par.R')
 source('signals_int.R')
 source("autorun.R")
 source("save_roi_testing.R")
-
-# library(shinyjs)
-# 
-# 
-# edits <- data.frame(Row = c("", ""), Column = (c("", "")), Value = (c("", "")), stringsAsFactors = FALSE);
-# rownames(edits) <- c("Fail", "Success");
-
-
 
 shinyServer(function(input, output,session) {
   revals <- reactiveValues();
@@ -399,6 +390,10 @@ shinyServer(function(input, output,session) {
 
     spectra , selection = list(mode = 'multiple', selected = 1),server = T)
   
+  output$p_value_final = DT::renderDataTable(round(p_value_final,3),selection = list(mode = 'multiple', selected = 1),server = T)
+  
+  output$quant_selection = DT::renderDataTable(round(finaloutput$Area,2),selection = list(target = 'cell'),server = T)
+  
   
   
   # output$x1 <- renderD3tf({
@@ -473,7 +468,15 @@ shinyServer(function(input, output,session) {
     }
   })
   
+  output$plot_p_value <- renderPlotly({
+    plot_ly(data=bucketing,x=~Xdata,y=~mediani,color=~value,type='scatter',mode='lines') %>% layout(xaxis = list(autorange = "reversed"),yaxis = list(range = c(0, max(mediani))))
+    
+  })
   
+  output$plot_p_value_2 <- renderPlotly({
+    plot_ly(ab, x = ~Signal, y = ~Value, color = ~Metadata, type = "box") %>%
+      layout(boxmode = "group")
+  })
   
   
 })

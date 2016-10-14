@@ -94,5 +94,64 @@ mtcars=ROI_data[1:2,4:11]
 ROI_names=paste(ROI_data[ROI_separator[, 1],1],ROI_data[ROI_separator[, 1],2])
 select_options=1:length(ROI_names)
 names(select_options)=ROI_names
+t_test_data=autorun_data$dataset
+
+ss=unique(autorun_data$Metadata[,1])
+tt=matrix(NA,length(ss),dim(t_test_data)[2])
+for (ind in seq_along(ss)) {
+  for (k in 1.:dim(t_test_data)[2]) {
+    tt[ind,k]=tryCatch(shapiro.test(t_test_data[autorun_data$Metadata[,1]==ss[ind],k])$p.value,error=function(e) NA)
+  }
+  
+}
+p_value_bucketing=rep(NA,dim(t_test_data)[2])
+for (k in 1:dim(t_test_data)[2]) {
+  # if (!any(is.na(t_test_data[,k]))) {
+    if (!any(tt[,k]<0.05,na.rm=T)) {
+      p_value_bucketing[k]=tryCatch(wilcox.test(t_test_data[autorun_data$Metadata[,1]==ss[1],k],t_test_data[autorun_data$Metadata[,1]==ss[2],k])$p.value,error=function(e) NA)
+    } else {
+      p_value_bucketing[k]=tryCatch(t.test(t_test_data[autorun_data$Metadata[,1]==ss[1],k],t_test_data[autorun_data$Metadata[,1]==ss[2],k],var.equal=F)$p.value,error=function(e) NA)
+    }
+    
+  # }
+}
+p_value_bucketing[is.na(p_value_bucketing)]=0
+plotdata = data.frame(Xdata=autorun_data$ppm, p_value_bucketing)
+mediani=apply(autorun_data$dataset,2,function(x) median(x,na.rm=T))
+# plot_ly(data=plotdata,x=~Xdata,y=~Ydata)
+bucketing <- cbind(melt(plotdata, id = "Xdata"),mediani)
+plot_ly(data=bucketing,x=~Xdata,y=~mediani,color=~value,type='scatter',mode='lines') %>% layout(xaxis = list(autorange = "reversed"),yaxis = list(range = c(0, max(mediani))))
+
+t_test_data_2=finaloutput$Area
+t_test_data_2[finaloutput$fitting_error>other_fit_parameters$fitting_error_limit]=NA
+t_test_data_2[finaloutput$signal_area_ratio<other_fit_parameters$signal_area_ratio_limit]=NA
+
+ll=as.data.frame(scale(t_test_data_2))
+Xwit=cbind(ll,factor(autorun_data$Metadata[,1]))
+# rownames(Xwit)=NULL
+ab=melt(Xwit)
+colnames(ab)=c('Metadata','Signal','Value')
+
+ss=unique(autorun_data$Metadata[,1])
+tt=matrix(NA,length(ss),dim(t_test_data_2)[2])
+for (ind in seq_along(ss)) {
+  for (k in 1:dim(t_test_data_2)[2]) {
+    tt[ind,k]=tryCatch(shapiro.test(t_test_data_2[autorun_data$Metadata[,1]==ss[ind],k])$p.value,error=function(e) NA)
+  }
+  
+}
+p_value=rep(NA,dim(t_test_data_2)[2])
+for (k in 1:dim(t_test_data_2)[2]) {
+  # if (!any(is.na(t_test_data_2[,k]))) {
+  if (!any(tt[,k]<0.05,na.rm=T)) {
+    p_value[k]=tryCatch(wilcox.test(t_test_data_2[autorun_data$Metadata[,1]==ss[1],k],t_test_data_2[autorun_data$Metadata[,1]==ss[2],k])$p.value,error=function(e) NA)
+  } else {
+    p_value[k]=tryCatch(t.test(t_test_data_2[autorun_data$Metadata[,1]==ss[1],k],t_test_data_2[autorun_data$Metadata[,1]==ss[2],k],var.equal=F)$p.value,error=function(e) NA)
+  }
+  
+  # }
+}
+p_value_final=t(as.matrix(p_value))
+colnames(p_value_final)=colnames(t_test_data_2)
 
 
