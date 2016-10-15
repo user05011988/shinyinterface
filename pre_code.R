@@ -13,9 +13,10 @@ parameters_path = "C:/Users/user/Documents/r_dolphin - csv/Parameters_portugueso
 parameters_path = "C:/Users/user/Documents/r_dolphin - csv/Parameters_19_TSP_improved.csv"
 parameters_path = "C:/Users/user/Documents/r_dolphin - csv/Parameters_binning_dataset.csv"
 parameters_path = "C:/Users/user/Documents/r_dolphin - csv/Parameters_csv.csv"
-parameters_path = "C:/Bruker/TopSpin3.2/data/MTBLS1/data analysis/Parameters_20.csv"
 parameters_path = "C:/Users/user/Documents/r_dolphin - csv/Parameters_binning_dataset_new.txt"
 parameters_path = "C:/Bruker/TopSpin3.2/data/MTBLS1/data analysis/Parameters_20_2.csv"
+
+parameters_path = "C:/Bruker/TopSpin3.2/data/MTBLS1/data analysis/Parameters.csv"
 
 #import of data (dataset in csv format or Bruker nmr folder)
 imported_data = import_data(parameters_path)
@@ -82,6 +83,9 @@ autorun_data = list(
 )
 rm(imported_data)
 
+finaloutput = autorun(autorun_data, finaloutput)
+
+
 setwd("C:/Users/user/Downloads/shinyinterface-5d5de725082eba23eea719ceb1066ae5bb836671")
 
 
@@ -126,7 +130,7 @@ t_test_data_2=finaloutput$Area
 t_test_data_2[finaloutput$fitting_error>other_fit_parameters$fitting_error_limit]=NA
 t_test_data_2[finaloutput$signal_area_ratio<other_fit_parameters$signal_area_ratio_limit]=NA
 
-ll=as.data.frame(scale(t_test_data_2))
+ll=as.data.frame(t_test_data_2)
 Xwit=cbind(ll,factor(autorun_data$Metadata[,1]))
 # rownames(Xwit)=NULL
 ab=melt(Xwit)

@@ -34,7 +34,7 @@ import_data = function(parameters_path) {
   # signals_names = as.list(signals_names[signals_names != ''])
   profile_folder_path = as.character(import_profile[7, 2])
 
-  ROI_data=read.csv(profile_folder_path,sep=";")
+  ROI_data=read.csv(profile_folder_path,sep=",")
   signals_names=ROI_data[,4]
   signals_codes = 1:length(signals_names)
 
@@ -55,29 +55,33 @@ import_data = function(parameters_path) {
   normalization = import_profile[11, 2]
   params$norm_AREA = 'N'
   params$norm_PEAK = 'N'
-  params$norm_PEAK_left_ppm = 12
-  params$norm_PEAK_right_ppm = -1
+  params$norm_left_ppm = 12
+  params$norm_right_ppm = -1
   if (normalization == 1) {
     #Eretic
     params$norm_AREA = 'Y'
-    params$norm_PEAK_left_ppm = 11.53
-    params$norm_PEAK_right_ppm = 10.47
+    params$norm_left_ppm = 11.53
+    params$norm_right_ppm = 10.47
   } else if (normalization == 2) {
     #TSP
     params$norm_AREA = 'Y'
-    params$norm_PEAK_left_ppm = 0.1
-    params$norm_PEAK_right_ppm = -0.1
+    params$norm_left_ppm = 0.1
+    params$norm_right_ppm = -0.1
   } else if (normalization == 3) {
     #Creatinine (intensity, not area, maybe dangerous for rats because of oxalacetate)
     params$norm_PEAK = 'Y'
-    params$norm_PEAK_left_ppm = 3.10
-    params$norm_PEAK_right_ppm = 3
+    params$norm_left_ppm = 3.10
+    params$norm_right_ppm = 3
   } else if (normalization == 4) {
     #Spectrum AreA
     params$norm_AREA = 'Y'
   } else if (normalization == 5) {
     #No normailzation
 
+  } else if (normalization == 6) {
+    #No normailzation
+    params$norm_AREA = 'Y'
+    pqn='Y'
   }
 
   #Alignment
@@ -85,7 +89,7 @@ import_data = function(parameters_path) {
   params$glucose_alignment = 'N'
   params$tsp_alignment = 'N'
   params$peak_alignment = 'N'
-  params$ref_peak_pos = 8.452
+  params$ref_pos = 8.452
   if (alignment == 1) {
     #Glucose
     params$glucose_alignment = 'Y'
@@ -145,8 +149,27 @@ import_data = function(parameters_path) {
     imported_data = Metadata2Buckets(Experiments, params)
 
   }
-
+  
+  imported_data$dataset[is.na(imported_data$dataset)]=min(abs(imported_data$dataset)[abs(imported_data$dataset)>0])
+  if (pqn='Y') {
+    tra=rep(NA,20)
+    vardata3=apply(imported_data$dataset,2,function(x) sd(x,na.rm=T)/mean(x,na.rm=T))
+    ss=boxplot.stats(vardata3)$out
+    vardata3=vardata3[!(vardata3 %in% ss)]
+    param=seq(5,100,5)*max(vardata3,na.rm=T)/100
+    for (i in 1:length(param)) {
+      s=plele(param[i],imported_data$dataset,vardata3);
+    
+    
+    tra[i]=median(s$lol2[apply(imported_data$dataset,2,function(x) median(x,na.rm=T))>median(imported_data$dataset,na.rm=T)],na.rm=T);
+    }
+    s=plele(param[which.min(tra)],imported_data$dataset,vardata3);
+    imported_data$dataset=s$pqndatanoscale
+  }
+    
+    
   #Storage of parameters needed to perform the fit in a single variable to return.
+  
   imported_data$buck_step = params$buck_step
   imported_data$profile_folder_path = profile_folder_path
   imported_data$metadata_path = metadata_path

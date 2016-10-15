@@ -598,8 +598,7 @@ shinyServer(function(input, output,session) {
   #   
   #   # })
   # })
-  fi_er=mtcars
-  brks <- quantile(fi_er, probs = seq(.05, .95, .05), na.rm = TRUE)
+  brks <- quantile(finaloutput$fitting_error, probs = seq(.05, .95, .05), na.rm = TRUE)
   clrs <- round(seq(255, 40, length.out = length(brks) + 1), 0) %>%
   {paste0("rgb(255,", ., ",", ., ")")}
   # datatable(fi_er) %>% formatStyle(colnames(fi_er), backgroundColor = styleInterval(brks, clrs))
@@ -614,7 +613,7 @@ shinyServer(function(input, output,session) {
   colnames(mm)=colnames(autorun_data$Metadata)
   spectra=cbind(as.matrix(rownames(dataset)),rbind(autorun_data$Metadata,mm))
   # rownames(spectra)=ll
-  colnames(spectra)[1]='spectrum'
+  colnames(spectra)=c('spectrum','Metadata')
   
   output$x1 = DT::renderDataTable(
 
