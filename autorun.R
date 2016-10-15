@@ -4,15 +4,16 @@ autorun = function(autorun_data, finaloutput,input,ROI_profile,is_autorun) {
     #Preparation of necessary variables and folders to store figures and information of the fitting
   # if (is_autorun=='N') {indexes=input$x1_select
   if (is_autorun=='N') {
-    if (is.null(input$quant_selection_cell_clicked$row)) {
+    if (is.null(input$fit_selection_cell_clicked$row)) {
       indexes=input$x1_rows_selected
     } else {
-      indexes=input$quant_selection_cell_clicked$row
-      
+      indexes=input$fit_selection_cell_clicked$row
+      # indexes=input$troco_cell_clicked$row
     }
   } else {
     indexes=1:dim(autorun_data$dataset)[1]
   }
+  print(indexes)
   # print(ROI_profile)
   for (spectrum_index in indexes) {
   ROI_buckets=which(round(autorun_data$ppm,6)==round(ROI_profile[1,1],6)):which(round(autorun_data$ppm,6)==round(ROI_profile[1,2],6))

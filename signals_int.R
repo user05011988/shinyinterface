@@ -2,10 +2,11 @@ signals_int = function(autorun_data, finaloutput,input,signals_introduce,ROI_pro
   
   
     #Preparation of necessary variables and folders to store figures and information of the fitting
-  if (is.null(input$quant_selection_cell_clicked$row)) {
+  if (is.null(input$fit_selection_cell_clicked$row)) {
   spectrum_index=input$x1_rows_selected
   } else {
-    spectrum_index=input$quant_selection_cell_clicked$row
+    spectrum_index=input$fit_selection_cell_clicked$row
+    # spectrum_index=input$troco_cell_clicked$row
     
   }
   

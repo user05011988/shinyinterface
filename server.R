@@ -284,14 +284,14 @@ shinyServer(function(input, output,session) {
     # print(sell$roi)
     # print(sell$mtcars)
     # print(revals$mtcars)
-    if (sell$roi==0) {
-      v$blah <- autorun(autorun_data, finaloutput, input,sell$mtcars,is_autorun) 
-      
-    }
-    else {    
+    # if (sell$roi==0) {
+    #   v$blah <- autorun(autorun_data, finaloutput, input,sell$mtcars,is_autorun) 
+    #   
+    # }
+    # else {    
       v$blah <- autorun(autorun_data, finaloutput, input,revals$mtcars,is_autorun) 
 
-    }
+    # }
     revals3$mtcars=cbind(v$blah$results_to_save$Area,v$blah$results_to_save$fitting_error,v$blah$results_to_save$signal_area_ratio)
     finaloutput=v$blah$finaloutput
     # print(v$blah)
@@ -306,9 +306,9 @@ shinyServer(function(input, output,session) {
     
   })
   
-  observeEvent(input$quant_selection_cell_clicked, {
+  observeEvent(input$fit_selection_cell_clicked, {
     # print(input$quant_selection_cells_selected)
-    info=input$quant_selection_cell_clicked
+    info=input$fit_selection_cell_clicked
     is_autorun='N'
     if (length(info$row)!=1) {
       # print('Select only one quantification')
@@ -389,12 +389,114 @@ shinyServer(function(input, output,session) {
         ) 
     }
     revals$mtcars=ROI_profile
-    par=t(import(file.path(path,'signals_parameters.csv'))[,-1])
-    revals2$mtcars=cbind(par,ROI_profile[,c(8,10)])
+    revals2$mtcars=t(import(file.path(path,'signals_parameters.csv'))[,-1])
+      # par2=cbind(par,rep(1,dim(par)[1]),rep(0,dim(par)[1]))
+      # par2[dim(ROI_profile)[1],6:7]=ROI_profile[,c(8,10)]
+      # revals2$mtcars=par2
+    # revals2$mtcars=cbind(par,ROI_profile[,c(8,10)])
+      print(revals2$mtcars)
     revals3$mtcars=cbind(finaloutput$Area[info$row,info$col],finaloutput$fitting_error[info$row,info$col],finaloutput$signal_area_ratio[info$row,info$col])
     
     
   })
+  
+  # observeEvent(input$troco_cell_clicked, {
+  #   # print(input$quant_selection_cells_selected)
+  #   info=input$troco_cell_clicked
+  #   is_autorun='N'
+  #   if (length(info$row)!=1) {
+  #     # print('Select only one quantification')
+  #     return(NULL)
+  #   }
+  #   # print(info$row)
+  #   # print(info$col)
+  #   path=paste(autorun_data$export_path,autorun_data$Experiments[info$row],autorun_data$signals_names[info$col],sep='/')
+  #   # path=paste(autorun_data$export_path,autorun_data$Experiments[2],autorun_data$signals_names[4],sep='/')
+  #   
+  #   Xdata=as.numeric(import(file.path(path,'Xdata.csv'))[,-1])
+  #   Ydata=as.numeric(import(file.path(path,'Ydata.csv'))[,-1])
+  #   dummy=import(file.path(path,'plot_data.csv'))
+  #   plot_data=as.matrix(dummy[,-1])
+  #   other_fit_parameters=as.list(import(file.path(path,'other_fit_parameters.csv'))[1,])
+  #   ROI_profile=import(file.path(path,'import_excel_profile.csv'))[,-1,drop=F]
+  #   other_fit_parameters$signals_to_quantify=ROI_profile[,7]
+  #   
+  #   print('wha')
+  #   
+  #   
+  #   plotdata2 = data.frame(Xdata=Xdata,
+  #     Ydata=Ydata,
+  #     plot_data[3, ] * max(Ydata),
+  #     plot_data[2, ] * max(Ydata))
+  #   colnames(plotdata2)=c('Xdata','Ydata',"fitted_sum","baseline_sum")
+  #   plotdata3 <- melt(plotdata2, id = "Xdata")
+  #   plotdata3$variable = c(
+  #     rep('Original Spectrum', length(Ydata)),
+  #     rep('Generated Spectrum', length(Ydata)),
+  #     rep('Generated Background', length(Ydata))
+  #   )
+  #   plotdata4 = data.frame(Xdata, (t(plot_data[-c(1, 2, 3), , drop = F]) *
+  #       max(Ydata)))
+  #   colnames(plotdata4)=c('Xdata',dummy[-c(1, 2, 3),1])
+  #   
+  #   plotdata5 = melt(plotdata4, id = "Xdata")
+  #   print('wha')
+  #   
+  #   # p=plot_ly(data=plotdata3,x=~Xdata,y=~value,color=~variable,type='scatter',mode='lines') %>% layout(xaxis = list(autorange = "reversed"))
+  #   # p <- add_trace(p,data=plotdata5,x = ~Xdata,
+  #   #   y = ~value,
+  #   #   colour = 'Surrounding signals',
+  #   #   group = ~variable)
+  #   # p <- add_trace(p,data=plotdata5,x = ~Xdata,
+  #   #   y = ~value,
+  #   #   colour = 'Surrounding signals',
+  #   #   group = ~variable)
+  #   # plot_ly(data=plotdata3,x=~Xdata,y=~value,color=~variable,type='scatter',mode='lines') %>% layout(xaxis = list(autorange = "reversed"))
+  #   p=ggplot() +
+  #     geom_line(data = plotdata3,
+  #       aes(
+  #         x = Xdata,
+  #         y = value,
+  #         colour = variable,
+  #         group = variable
+  #       )) +
+  #     geom_line(data = plotdata5,
+  #       aes(
+  #         x = Xdata,
+  #         y = value,
+  #         colour = 'Surrounding signals',
+  #         group = variable
+  #       )) +
+  #     scale_x_reverse() + labs(x='ppm',y='Intensity') + expand_limits(y=0)
+  #   
+  #   for (r in 1:length(other_fit_parameters$signals_to_quantify)) {
+  #     plotdata = data.frame(Xdata, signals = plot_data[3 + other_fit_parameters$signals_to_quantify[r], ] * max(Ydata))
+  #     # colnames(plotdata)=c('Xdata','signals')
+  #     # print(plotdata)
+  #     v$blah$p=p +
+  #       geom_area(
+  #         data = plotdata,
+  #         aes(
+  #           x = Xdata,
+  #           y = signals,
+  #           position = 'fill',
+  #           fill = 'Quantified Signal'
+  #         )
+  #       ) 
+  #   }
+  #   
+  #   print('wh')
+  #   revals$mtcars=ROI_profile
+  #   par=t(import(file.path(path,'signals_parameters.csv'))[,-1])
+  #   
+  #   par2=cbind(par,rep(1,dim(par)[1]),rep(0,dim(par)[1]))
+  #   par2[dim(ROI_profile)[1],6:7]=ROI_profile[,c(8,10)]
+  #   revals2$mtcars=par2
+  #   print('wh')
+  #   revals3$mtcars=cbind(finaloutput$Area[info$row,info$col],finaloutput$fitting_error[info$row,info$col],finaloutput$signal_area_ratio[info$row,info$col])
+  #   print('wh')
+  #   
+  # })
   
   observeEvent(input$autorun, {
     
@@ -438,6 +540,8 @@ shinyServer(function(input, output,session) {
     
     
   })
+  
+  
   #       
   #   })
   
@@ -463,37 +567,47 @@ shinyServer(function(input, output,session) {
     # })
   })
   
-  output$fit_error <- renderD3tf({
-    tableProps <- list(
-      btn_reset = TRUE,
-      sort = TRUE,
-      # enableEdit(session, "mtcars", c("col_1", "col_2")),
-      sort_config = list(
-        # alphabetic sorting for the row names column, numeric for all other columns
-        sort_types = c("String", rep("Number", ncol(revals3$mtcars)))
-      )
-    );
-    # observe({
-    bgColScales <- list()
-      for(i in 1:dim(finaloutput$fitting_error)[2]) {
-        bgColScales[[i]] = JS('function colorScale(tbl, i){
-        var color = d3.scale.linear()
-        .domain([0, 7, 14])
-        .range(["#2ee524", "white", "#f20707"]);
-        return color(i);
-      }')
-      }
-    names(bgColScales)=paste0("col_", 0:(dim(finaloutput$fitting_error)[2]-1))
+  # output$fit_error <- renderD3tf({
+  #   tableProps <- list(
+  #     btn_reset = TRUE,
+  #     sort = TRUE,
+  #     # enableEdit(session, "mtcars", c("col_1", "col_2")),
+  #     sort_config = list(
+  #       # alphabetic sorting for the row names column, numeric for all other columns
+  #       sort_types = c("String", rep("Number", ncol(revals3$mtcars)))
+  #     )
+  #   );
+  #   # observe({
+  #   bgColScales <- list()
+  #     for(i in 1:dim(finaloutput$fitting_error)[2]) {
+  #       bgColScales[[i]] = JS('function colorScale(tbl, i){
+  #       var color = d3.scale.linear()
+  #       .domain([0, 7, 14])
+  #       .range(["#2ee524", "white", "#f20707"]);
+  #       return color(i);
+  #     }')
+  #     }
+  #   names(bgColScales)=paste0("col_", 0:(dim(finaloutput$fitting_error)[2]-1))
+  #   
+  #   d3tf(round(finaloutput$fitting_error,2),
+  #     tableProps = tableProps,
+  #     edit=F,
+  #     showRowNames = T,
+  #     bgColScales = bgColScales,
+  #     tableStyle = "table table-bordered");
+  #   
+  #   # })
+  # })
+  fi_er=mtcars
+  brks <- quantile(fi_er, probs = seq(.05, .95, .05), na.rm = TRUE)
+  clrs <- round(seq(255, 40, length.out = length(brks) + 1), 0) %>%
+  {paste0("rgb(255,", ., ",", ., ")")}
+  # datatable(fi_er) %>% formatStyle(colnames(fi_er), backgroundColor = styleInterval(brks, clrs))
+     # return(dat)
+  
+ 
     
-    d3tf(round(finaloutput$fitting_error,2),
-      tableProps = tableProps,
-      edit=F,
-      showRowNames = T,
-      bgColScales = bgColScales,
-      tableStyle = "table table-bordered");
-    
-    # })
-  })
+  
   dataset=rbind(autorun_data$dataset,colMeans(autorun_data$dataset),apply(autorun_data$dataset,2,median))
   rownames(dataset)[(dim(autorun_data$dataset)[1]+1):dim(dataset)[1]]=c('Mean spectrum', 'Median spectrum')
   mm=matrix(NA,2,dim(autorun_data$Metadata)[2])
@@ -508,9 +622,19 @@ shinyServer(function(input, output,session) {
   
   output$p_value_final = DT::renderDataTable(round(p_value_final,3),selection = list(mode = 'multiple', selected = 1),server = T)
   
-  output$quant_selection = DT::renderDataTable(round(finaloutput$Area,2),selection = list(mode = 'single', target = 'cell'),server = T)
+  # output$quant_selection = DT::renderDataTable(round(finaloutput$Area,2),selection = list(mode = 'single', target = 'cell'),server = T)
   
+  output$fit_selection = DT::renderDataTable({ dat <- datatable(finaloutput$fitting_error,selection = list(mode = 'single', target = 'cell')) %>% formatStyle(colnames(finaloutput$fitting_error), backgroundColor = styleInterval(brks, clrs))
+    return(dat)
+  })
   
+  # valid=alarmmatrix
+  # brks <- quantile(valid, probs = seq(.05, .95, .05), na.rm = TRUE)
+  # clrs <- round(seq(255, 40, length.out = length(brks) + 1), 0) %>%
+  # {paste0("rgb(255,", ., ",", ., ")")}
+  
+  # output$troco = DT::renderDataTable(datatable(valid)
+  #   %>% formatStyle(colnames(valid), backgroundColor = styleInterval(brks, clrs)),selection = list(mode = 'single', target = 'cell'),server = T)
   
   # output$x1 <- renderD3tf({
   #   
@@ -588,6 +712,7 @@ shinyServer(function(input, output,session) {
     plot_ly(data=bucketing,x=~Xdata,y=~mediani,color=~value,type='scatter',mode='lines') %>% layout(xaxis = list(autorange = "reversed"),yaxis = list(range = c(0, max(mediani))))
     
   })
+  
   
   output$plot_p_value_2 <- renderPlotly({
     plot_ly(ab, x = ~Signal, y = ~Value, color = ~Metadata, type = "box") %>%

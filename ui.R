@@ -35,16 +35,16 @@ shinyUI(fluidPage(
 
     mainPanel(plotlyOutput("plot")))
     ),
-  tabPanel("Row selection",
-    fluidRow(column(width = 12, h4("Row selection"))),
-    fluidRow(
-      column(width = 12,
-        d3tfOutput('fit_error')
+    tabPanel("Selection",
+      fluidRow(column(width = 12, h4("Selection"))),
+      fluidRow(
+        column(width = 12,
+          DT::dataTableOutput("fit_selection")
+        )
+        
       )
-    
-  )
-  
-),
+      
+    ),
     tabPanel("Selection",
       fluidRow(column(width = 12, h4("Selection"))),
       fluidRow(
@@ -55,6 +55,17 @@ shinyUI(fluidPage(
       )
       
     ),
+    
+    # tabPanel("Selection",
+    #   fluidRow(column(width = 12, h4("Selection"))),
+    #   fluidRow(
+    #     column(width = 12,
+    #       DT::dataTableOutput("troco")
+    #     )
+    # 
+    #   )
+    # 
+    # ),
     
     tabPanel("p_value",
   fluidRow(column(width = 12, h4("Row selection"))),
