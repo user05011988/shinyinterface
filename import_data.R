@@ -9,7 +9,7 @@ import_data = function(parameters_path) {
   # TO DO: stringsasfactors=F
   import_profile = read.delim(
     parameters_path,
-    sep = ';',
+    sep = ',',
     header = T,
     stringsAsFactors = F
   )
@@ -21,38 +21,35 @@ import_data = function(parameters_path) {
 
   dummy = read.delim(
     metadata_path,
-    sep = ';',
+    sep = ',',
     header = T,
     stringsAsFactors = F
   )
   Experiments=dummy[,1]
   Experiments = as.vector(Experiments[Experiments != ''])
-  Metadata=dummy[,-1]
+  Metadata=dummy[,-1,drop=F]
   # signals_names = read.delim(as.character(import_profile[6, 2]),
   #                            header = F,
   #                            stringsAsFactors = F)[, 1]
   # signals_names = as.list(signals_names[signals_names != ''])
-  profile_folder_path = as.character(import_profile[7, 2])
+  profile_folder_path = as.character(import_profile[6, 2])
 
-  ROI_data=read.csv(profile_folder_path,sep=",")
+  ROI_data=read.csv(profile_folder_path)
   signals_names=ROI_data[,4]
   signals_codes = 1:length(signals_names)
 
 
 
   #Preparing the structure of experiments and signals where to store the output
-  export_path = as.character(import_profile[8, 2])
-
-  #Criteria for saving or not plots of fit
-  E_max = as.numeric(as.character(import_profile[9, 2]))
-  P_max = as.numeric(as.character(import_profile[10, 2]))
-
-  #Other necessary variables
-  freq = as.numeric(as.character(import_profile[14, 2]))
+  export_path = as.character(import_profile[7, 2])
+#Other necessary variables
+  freq = as.numeric(as.character(import_profile[11, 2]))
 
   #Kind of normalization
   #TO DO: add PQN (but before standardize a way to find the regions to have into account)
-  normalization = import_profile[11, 2]
+  normalization = import_profile[8, 2]
+  pqn='N'
+  
   params$norm_AREA = 'N'
   params$norm_PEAK = 'N'
   params$norm_left_ppm = 12
@@ -85,7 +82,7 @@ import_data = function(parameters_path) {
   }
 
   #Alignment
-  alignment = import_profile[12, 2]
+  alignment = import_profile[9, 2]
   params$glucose_alignment = 'N'
   params$tsp_alignment = 'N'
   params$peak_alignment = 'N'
@@ -102,12 +99,12 @@ import_data = function(parameters_path) {
   }
 
   #Suppresion regions
-  suppression = as.character(import_profile[13, 2])
+  suppression = as.character(import_profile[10, 2])
   if (suppression == '') {
     params$disol_suppression = 'N'
   } else {
     params$disol_suppression = 'Y'
-    params$disol_suppression_ppm = as.numeric(strsplit(suppression, '-|,')[[1]])
+    params$disol_suppression_ppm = as.numeric(strsplit(suppression, '-|;')[[1]])
     dim(params$disol_suppression_ppm) = c(length(params$disol_suppression_ppm) /
                                             2, 2)
     params$disol_suppression_ppm = t(params$disol_suppression_ppm)
@@ -125,16 +122,20 @@ import_data = function(parameters_path) {
     if (dataset_path != '') {
       #Reading of dataset file (ideally with fread of data.table package, bu seems that the package is not compatible with R 3.3.1)
       imported_data = list()
-      dummy = as.matrix(rio::import(dataset_path, sep = ','))
-      imported_data$dataset=dummy[-1,]
-      imported_data$ppm = colnames(imported_data$dataset) = dummy[1,]
+      dummy = rio::import(dataset_path, sep = ',',header=F,colClasses='numeric')
+      pa=dim(dummy[-1,])
+      
+      imported_data$dataset=as.numeric(as.matrix(dummy[-1,]))
+      dim(imported_data$dataset)=pa
+      colnames(imported_data$dataset) = dummy[1,]
+      imported_data$ppm = as.numeric(dummy[1,])
       rownames(imported_data$dataset) = Experiments
 
       params$buck_step = ifelse(
-        as.character(import_profile[21, 2]) == '',
+        as.character(import_profile[13, 2]) == '',
         abs(imported_data$ppm[1] - imported_data$ppm[length(imported_data$ppm)]) /
           length(imported_data$ppm),
-        as.numeric(as.character(import_profile[21, 2]))
+        as.numeric(as.character(import_profile[13, 2]))
       )
     } else {
       print('Problem when creating the dataset. Please revise the parameters.')
@@ -145,13 +146,13 @@ import_data = function(parameters_path) {
     params$dir = bruker_path
     params$expno = expno
     params$processingno = processingno
-    params$buck_step = as.numeric(as.character(import_profile[21, 2]))
+    params$buck_step = as.numeric(as.character(import_profile[13, 2]))
     imported_data = Metadata2Buckets(Experiments, params)
 
   }
   
   imported_data$dataset[is.na(imported_data$dataset)]=min(abs(imported_data$dataset)[abs(imported_data$dataset)>0])
-  if (pqn='Y') {
+  if (pqn=='Y') {
     tra=rep(NA,20)
     vardata3=apply(imported_data$dataset,2,function(x) sd(x,na.rm=T)/mean(x,na.rm=T))
     ss=boxplot.stats(vardata3)$out
@@ -177,8 +178,6 @@ import_data = function(parameters_path) {
   imported_data$signals_names = signals_names
   imported_data$signals_codes = signals_codes
   imported_data$Experiments = setdiff(Experiments, imported_data$not_loaded_experiments)
-  imported_data$E_max = E_max
-  imported_data$P_max = P_max
   imported_data$export_path = export_path
   imported_data$freq = freq
   imported_data$Metadata=Metadata

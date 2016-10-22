@@ -12,11 +12,14 @@ parameters_path = "C:/Users/user/Documents/r_dolphin - csv/Parameters_portugueso
 
 parameters_path = "C:/Users/user/Documents/r_dolphin - csv/Parameters_19_TSP_improved.csv"
 parameters_path = "C:/Users/user/Documents/r_dolphin - csv/Parameters_binning_dataset.csv"
-parameters_path = "C:/Users/user/Documents/r_dolphin - csv/Parameters_csv.csv"
+parameters_path = "C:/Users/user/Dropbox/interface_example/Parameters.csv"
 parameters_path = "C:/Users/user/Documents/r_dolphin - csv/Parameters_binning_dataset_new.txt"
 parameters_path = "C:/Bruker/TopSpin3.2/data/MTBLS1/data analysis/Parameters_20_2.csv"
 
-parameters_path = "C:/Bruker/TopSpin3.2/data/MTBLS1/data analysis/Parameters.csv"
+parameters_path = "C:/Bruker/TopSpin3.2/data/MTBLS1/data analysis/Parameters_sencer.csv"
+parameters_path = "C:/Bruker/TopSpin3.2/data/MTBLS1/data analysis/Parameters_sencer_from_dataset.csv"
+
+parameters_path = "C:/Bruker/TopSpin3.2/data/MTBLS1/data analysis/Parameters_reduced_20.csv"
 
 #import of data (dataset in csv format or Bruker nmr folder)
 imported_data = import_data(parameters_path)
@@ -48,7 +51,7 @@ write.csv(
 colnames(imported_data$dataset) = imported_data$ppm
 rownames(imported_data$dataset) = imported_data$Experiments
 write.csv(imported_data$dataset,
-  file.path(imported_data$export_path, 'initialdataset.csv'))
+  file.path(imported_data$export_path, 'initialdataset.csv'),row.names=F)
 if ("not_loaded_experiments" %in% names(imported_data))
   write.table(
     imported_data$not_loaded_experiments,
@@ -81,19 +84,18 @@ autorun_data = list(
   freq = imported_data$freq,
   Metadata=imported_data$Metadata
 )
-rm(imported_data)
 
 finaloutput = autorun(autorun_data, finaloutput)
 
 
-setwd("C:/Users/user/Downloads/shinyinterface-5d5de725082eba23eea719ceb1066ae5bb836671")
+other_fit_parameters = fitting_variables()
 
 
-ROI_data = read.csv(autorun_data$profile_folder_path, sep = ";",stringsAsFactors = F)
+ROI_data = read.csv(autorun_data$profile_folder_path, stringsAsFactors = F)
 dummy = which(!is.na(ROI_data[, 1]))
 ROI_separator = cbind(dummy, c(dummy[-1] - 1, dim(ROI_data)[1]))
-mtcars2=ROI_data[1:2,4:11]
-mtcars=ROI_data[1:2,4:11]
+# mtcars2=ROI_data[1:2,4:11]
+# mtcars=ROI_data[1:2,4:11]
 
 ROI_names=paste(ROI_data[ROI_separator[, 1],1],ROI_data[ROI_separator[, 1],2])
 select_options=1:length(ROI_names)
@@ -135,7 +137,15 @@ Xwit=cbind(ll,factor(autorun_data$Metadata[,1]))
 # rownames(Xwit)=NULL
 ab=melt(Xwit)
 colnames(ab)=c('Metadata','Signal','Value')
+outlier_table=matrix(0,dim(ll)[1],dim(ll)[2])
+colnames(outlier_table)=colnames(t_test_data_2)
+rownames(outlier_table)=rownames(finaloutput$fitting_error)
 
+for (j in 1:length(ss)) {
+  outlier_table[autorun_data$Metadata==ss[j],][sapply(ll[autorun_data$Metadata==ss[j],]), function(x)x %in% boxplot.stats(x)$out)]=1
+  # ind=which(autorun_data$Metadata==ss[j])
+  # sell$outlier_table[ind[sell$finaloutput$Area[autorun_data$Metadata==ss[j],i] %in%  outliers],i]=1
+}
 ss=unique(autorun_data$Metadata[,1])
 tt=matrix(NA,length(ss),dim(t_test_data_2)[2])
 for (ind in seq_along(ss)) {
@@ -159,3 +169,4 @@ p_value_final=t(as.matrix(p_value))
 colnames(p_value_final)=colnames(t_test_data_2)
 
 
+save(setdiff(ls(), lsf.str()),file='ff.RData')
