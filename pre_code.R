@@ -17,7 +17,7 @@ parameters_path = "C:/Users/user/Documents/r_dolphin - csv/Parameters_binning_da
 parameters_path = "C:/Bruker/TopSpin3.2/data/MTBLS1/data analysis/Parameters_20_2.csv"
 
 parameters_path = "C:/Bruker/TopSpin3.2/data/MTBLS1/data analysis/Parameters_sencer.csv"
-parameters_path = "C:/Bruker/TopSpin3.2/data/MTBLS1/data analysis/Parameters_sencer_from_dataset.csv"
+parameters_path = "C:/Bruker/TopSpin3.2/data/MTBLS1/data analysis/Parameters_sencer_repository.csv"
 
 parameters_path = "C:/Bruker/TopSpin3.2/data/MTBLS1/data analysis/Parameters_reduced_20.csv"
 

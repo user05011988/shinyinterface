@@ -91,8 +91,11 @@ ui <- fluidPage(
           fluidRow(column(width = 12, h4("You have here some indicators of quality of the quantification"))),
           
           D3TableFilter::d3tfOutput('mtcars3',width = "100%", height = "auto"),
-          D3TableFilter::d3tfOutput('mtcars4',width = "100%", height = "auto")
-          
+          D3TableFilter::d3tfOutput('mtcars4',width = "100%", height = "auto"),
+          fluidRow(
+            column(width = 12,
+              DT::dataTableOutput("repository")
+            ))
           
           )
         )
@@ -159,12 +162,21 @@ ui <- fluidPage(
       fluidRow(
         column(width = 12, h4("Boxplots"),
           mainPanel(plotlyOutput("plot_p_value_2")))    ),
+      # fluidRow(
+      #   column(width = 12,
+      #     DT::dataTableOutput("corr_area_matrix")
+      #   )
+      #   
+      # )
       fluidRow(
-        column(width = 12,
-          DT::dataTableOutput("corr_area_matrix")
-        )
-        
-      )
+        column(width = 12, h4("Correrlation between spectra by quantification"),
+          mainPanel(plotlyOutput("corr_area_spectrum")))    ),
+      fluidRow(
+            column(width = 12, h4("Correrlation between signals by quantification"),
+              mainPanel(plotlyOutput("corr_area_signal")))    ),
+      fluidRow(
+                column(width = 12, h4("Correrlation between signals by chemical shift"),
+                  mainPanel(plotlyOutput("corr_shift_signal")))    )
       
     )
     
@@ -215,6 +227,13 @@ server = function(input, output,session) {
   observe({
     replaceData(proxy, sell$ROI_data)
   })
+  output$repository = DT::renderDataTable(
+    
+    sell$repository[which(sell$repository[,5]>revals$mtcars[1,2]&sell$repository[,5]<revals$mtcars[1,1]),] , server = T)
+  proxy2 = dataTableProxy('repository')
+  observe({
+    replaceData(proxy2,  sell$repository[which(sell$repository[,5]>revals$mtcars[1,2]&sell$repository[,5]<revals$mtcars[1,1]),] )
+  })
   
   observeEvent(input$saveroi, {
    
@@ -227,6 +246,7 @@ server = function(input, output,session) {
     if (sell$beginning ==T) {
     sell$mtcars=sell$ROI_data[sell$ROI_separator[as.numeric(input$select), 1]:sell$ROI_separator[as.numeric(input$select), 2],]
     }
+    
     
     
     # selectCells(dataTableProxy('fit_selection'), NULL)
@@ -710,7 +730,7 @@ server = function(input, output,session) {
       
      
     }
-    sell$p_value_final=t(as.matrix(p_value))
+    sell$p_value_final=t(as.matrix(p.adjust(p_value,method="BH")))
     colnames(sell$p_value_final)=colnames(t_test_data_2)
     
     
@@ -937,6 +957,28 @@ server = function(input, output,session) {
     plot_ly(sell$ab, x = ~Signal, y = ~Value, color = ~Metadata, type = "box") %>%
       layout(boxmode = "group")
   })
+  output$corr_area_spectrum <- renderPlotly({
+    cr=cor(t(sell$finaloutput$Area),use='pairwise.complete.obs',method='spearman')
+    bb=hclust(dist(cr))$order
+    dr=cr[bb,bb]
+    p= plot_ly(x=rownames(dr),y=colnames(dr), z = dr, type = "heatmap")
+    p<- layout(p, xaxis = list(categoryarray = rownames(dr), categoryorder = "array"),yaxis = list(categoryarray = colnames(dr), categoryorder = "array"))
+  })
+  output$corr_area_signal <- renderPlotly({
+    cr=cor(sell$finaloutput$Area,use='pairwise.complete.obs',method='spearman')
+    bb=hclust(dist(cr))$order
+    dr=cr[bb,bb]
+    p= plot_ly(x=rownames(dr),y=colnames(dr), z = dr, type = "heatmap")
+    p<- layout(p, xaxis = list(categoryarray = rownames(dr), categoryorder = "array"),yaxis = list(categoryarray = colnames(dr), categoryorder = "array"))
+  })
+  output$corr_shift_signal <- renderPlotly({
+    cr=cor(sell$finaloutput$shift,use='pairwise.complete.obs',method='spearman')
+    bb=hclust(dist(cr))$order
+    dr=cr[bb,bb]
+    p= plot_ly(x=rownames(dr),y=colnames(dr), z = dr, type = "heatmap")
+    p<- layout(p, xaxis = list(categoryarray = rownames(dr), categoryorder = "array"),yaxis = list(categoryarray = colnames(dr), categoryorder = "array"))
+  })
+  
   observeEvent(input$x1_rows_selected, {
     if (sell$beginning ==T) {
       sell$mtcars=sell$ROI_data[sell$ROI_separator[as.numeric(input$select), 1]:sell$ROI_separator[as.numeric(input$select), 2],]
@@ -997,13 +1039,13 @@ server = function(input, output,session) {
     #creation of several outputs with data of interest before beginnig the quantification
     write.csv(
       as.data.frame(imported_data$params),
-      file.path(imported_data$export_path, 'initialparams.csv'),
+      file.path(imported_data$export_path, 'initial_params.csv'),
       row.names = F
     )
     colnames(imported_data$dataset) = imported_data$ppm
     rownames(imported_data$dataset) = imported_data$Experiments
     write.csv(imported_data$dataset,
-      file.path(imported_data$export_path, 'initialdataset.csv'))
+      file.path(imported_data$export_path, 'initial_dataset.csv'))
     if ("not_loaded_experiments" %in% names(imported_data))
       write.table(
         imported_data$not_loaded_experiments,
@@ -1012,6 +1054,8 @@ server = function(input, output,session) {
         col.names = F
       )
     #creation of list of necessary parameters for automatic quantification
+    sell$repository=imported_data$repository
+    
     sell$autorun_data = list(
       dataset = imported_data$dataset,
       ppm = imported_data$ppm,
@@ -1063,7 +1107,8 @@ server = function(input, output,session) {
       
       # }
     }
-    p_value_bucketing[is.na(p_value_bucketing)]=0
+    p_value_bucketing=p.adjust(p_value_bucketing,method="BH")
+    p_value_bucketing[is.na(p_value_bucketing)]=1
     plotdata = data.frame(Xdata=sell$autorun_data$ppm, p_value_bucketing)
     sell$mediani=apply(sell$autorun_data$dataset,2,function(x) median(x,na.rm=T))
     # plot_ly(data=plotdata,x=~Xdata,y=~Ydata)
@@ -1078,6 +1123,7 @@ server = function(input, output,session) {
     Xwit=cbind(ll,factor(sell$autorun_data$Metadata[,1]))
     # rownames(Xwit)=NULL
     sell$ab=melt(Xwit)
+    
     colnames(sell$ab)=c('Metadata','Signal','Value')
     sell$outlier_table=matrix(0,dim(ll)[1],dim(ll)[2])
     sell$outlier_table=as.data.frame(sell$outlier_table)
@@ -1111,7 +1157,7 @@ server = function(input, output,session) {
       
       # }
     }
-    sell$p_value_final=t(as.matrix(p_value))
+    sell$p_value_final=t(as.matrix(p.adjust(p_value,method="BH")))
     colnames(sell$p_value_final)=colnames(t_test_data_2)
     
     
@@ -1216,6 +1262,7 @@ server = function(input, output,session) {
     sell$clrs=elements$clrs
     sell$clrs2=elements$clrs2
     sell$clrs3=elements$clrs3
+    sell$repository=elements$repository
     
     sell$autorun_data=elements$autorun_data
     
@@ -1276,7 +1323,13 @@ server = function(input, output,session) {
       sell$fo2[ii,which(sell$finaloutput$width[ii,]<tro[,2]|sell$finaloutput$width[ii,]>tro[,3])]=1
     }
     
-    
+    # output$repository = DT::renderDataTable(
+    #   
+    #   sell$repository[which(sell$repository[,5]>revals$mtcars[1,2]&sell$repository[,5]<revals$mtcars[1,1]),] , server = T)
+    # proxy2 = dataTableProxy('repository')
+    # observe({
+    #   replaceData(proxy2,  sell$repository[which(sell$repository[,5]>revals$mtcars[1,2]&sell$repository[,5]<revals$mtcars[1,1]),] )
+    # })
     output$x1 = DT::renderDataTable(
       
       spectra , selection = list(mode = 'multiple', selected = 1),server = T)
