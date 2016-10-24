@@ -48,8 +48,8 @@ fittingloop = function(FeaturesMatrix,
   
   #Function where to find a minimum
   residFun <-
-    function(par, observed, xx,multiplicities,roof_effect)
-      observed - colSums(fitting_optimization(par, xx,multiplicities,roof_effect))
+    function(par, observed, xx,multiplicities,roof_effect,freq)
+      observed - colSums(fitting_optimization(par, xx,multiplicities,roof_effect,observed,freq))
   
   
   # Loop to control if additional signals are incorporated, until a maximum of iterations specified bt fitting_maxiterrep.
@@ -104,6 +104,7 @@ fittingloop = function(FeaturesMatrix,
           xx = Xdata,
           multiplicities=multiplicities,
           roof_effect=roof_effect,
+        freq=other_fit_parameters$freq,
           lower = lb,
           upper = ub,
           control = nls.lm.control(
@@ -157,6 +158,7 @@ fittingloop = function(FeaturesMatrix,
           xx = Xdata,
           multiplicities=multiplicities,
           roof_effect=roof_effect,
+          freq=other_fit_parameters$freq,
           lower = lb,
           upper = ub,
           control = nls.lm.control(

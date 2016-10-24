@@ -1,14 +1,8 @@
-signals_int = function(autorun_data, finaloutput,input,signals_introduce,ROI_profile) {
+signals_int = function(autorun_data, finaloutput,spectrum_index,signals_introduce,ROI_profile) {
   
   
     #Preparation of necessary variables and folders to store figures and information of the fitting
-  if (is.null(input$fit_selection_cell_clicked$row)) {
-  spectrum_index=input$x1_rows_selected
-  } else {
-    spectrum_index=input$fit_selection_cell_clicked$row
-    # spectrum_index=input$troco_cell_clicked$row
-    
-  }
+  
   
   ROI_buckets=which(round(autorun_data$ppm,6)==round(ROI_profile[1,1],6)):which(round(autorun_data$ppm,6)==round(ROI_profile[1,2],6))
   Xdata= as.numeric(autorun_data$ppm[ROI_buckets])
@@ -51,8 +45,9 @@ fitting_type=ROI_profile[1,3]
       
       # print(signals_parameters)
       # print(Xdata)
+      other_fit_parameters$freq=autorun_data$freq
       fitted_signals = fitting_optimization(signals_parameters,
-                                         Xdata,multiplicities,roof_effect)
+                                         Xdata,multiplicities,roof_effect,Ydata,other_fit_parameters$freq)
       # print(fitted_signals)
       # signals_parameters=as.matrix(signals_parameters)
       dim(signals_parameters) = c(5, dim(signals_introduce)[1])
@@ -103,11 +98,11 @@ fitting_type=ROI_profile[1,3]
       rownames(plot_data) = c("signals_sum",
                               "baseline_sum",
                               "fitted_sum",
-                              as.character(ROI_profile[,1]))
+                              as.character(ROI_profile[,4]))
 
       # r=1
       # plotdata = data.frame(Xdata=autorun_data$ppm[ROI_buckets], t(dataset[input$x1_rows_selected,ROI_buckets,drop=F]))
-      plotdata = data.frame(Xdata, signals = plot_data[3 + other_fit_parameters$signals_to_quantify[r], ] * max(Ydata))
+     
       plotdata2 = data.frame(Xdata,
         Ydata,
         plot_data[3, ] * max(Ydata),
@@ -137,16 +132,20 @@ fitting_type=ROI_profile[1,3]
             colour = 'Surrounding signals',
             group = variable
           )) +
-        geom_area(
-          data = plotdata,
-          aes(
-            x = Xdata,
-            y = signals,
-            position = 'fill',
-            fill = 'Quantified Signal'
-          )
-        ) +
         scale_x_reverse() + labs(x='ppm',y='Intensity')
+      for (r in 1:length(other_fit_parameters$signals_to_quantify)) {
+        plotdata = data.frame(Xdata, signals = plot_data[3 + other_fit_parameters$signals_to_quantify[r], ] * max(Ydata))
+        p=p +
+          geom_area(
+            data = plotdata,
+            aes(
+              x = Xdata,
+              y = signals,
+              position = 'fill',
+              fill = 'Quantified Signal'
+            )
+          )
+      }
      
     finaloutput = save_output(
       spectrum_index,
@@ -167,6 +166,8 @@ fitting_type=ROI_profile[1,3]
     blah$results_to_save=results_to_save
     blah$fitting_type=fitting_type
     blah$ROI_profile=ROI_profile
+    blah$finaloutput=finaloutput
+    blah$signals_codes
     
   return(blah)
 }

@@ -526,8 +526,8 @@ server = function(input, output,session) {
     
     plotdata2 = data.frame(Xdata=Xdata,
       Ydata=Ydata,
-      plot_data[3, ] * max(Ydata),
-      plot_data[2, ] * max(Ydata))
+      plot_data[3, ] ,
+      plot_data[2, ])
     colnames(plotdata2)=c('Xdata','Ydata',"fitted_sum","baseline_sum")
     plotdata3 <- melt(plotdata2, id = "Xdata")
     plotdata3$variable = c(
@@ -535,8 +535,8 @@ server = function(input, output,session) {
       rep('Generated Spectrum', length(Ydata)),
       rep('Generated Background', length(Ydata))
     )
-    plotdata4 = data.frame(Xdata, (t(plot_data[-c(1, 2, 3), , drop = F]) *
-        max(Ydata)))
+    plotdata4 = data.frame(Xdata, (t(plot_data[-c(1, 2, 3), , drop = F])
+        ))
     colnames(plotdata4)=c('Xdata',dummy[-c(1, 2, 3),1])
     
     plotdata5 = melt(plotdata4, id = "Xdata")
@@ -558,7 +558,7 @@ server = function(input, output,session) {
       scale_x_reverse() + labs(x='ppm',y='Intensity') + expand_limits(y=0)
     
     r=which(ROI_profile[,4]==sell$autorun_data$signals_names[sell$info$col])
-    plotdata = data.frame(Xdata, signals = plot_data[3 + r, ] * max(Ydata))
+    plotdata = data.frame(Xdata, signals = plot_data[3 + r, ] )
       v$blah$p=v$blah$p +
         geom_area(
           data = plotdata,
@@ -584,7 +584,7 @@ server = function(input, output,session) {
     revals3$mtcars=cbind(sell$finaloutput$Area[sell$info$row,ind],sell$finaloutput$fitting_error[sell$info$row,ind],sell$finaloutput$signal_area_ratio[sell$info$row,ind])
     colnames(revals3$mtcars)=c('Quantification','fitting error','signal/total area ratio')
     
-    
+    updateTabsetPanel(session, "mynavlist",selected = "ROI Testing")
     
     
   })
@@ -620,8 +620,8 @@ server = function(input, output,session) {
     
     plotdata2 = data.frame(Xdata=Xdata,
       Ydata=Ydata,
-      plot_data[3, ] * max(Ydata),
-      plot_data[2, ] * max(Ydata))
+      plot_data[3, ],
+      plot_data[2, ])
     colnames(plotdata2)=c('Xdata','Ydata',"fitted_sum","baseline_sum")
     plotdata3 <- melt(plotdata2, id = "Xdata")
     plotdata3$variable = c(
@@ -629,8 +629,7 @@ server = function(input, output,session) {
       rep('Generated Spectrum', length(Ydata)),
       rep('Generated Background', length(Ydata))
     )
-    plotdata4 = data.frame(Xdata, (t(plot_data[-c(1, 2, 3), , drop = F]) *
-        max(Ydata)))
+    plotdata4 = data.frame(Xdata, (t(plot_data[-c(1, 2, 3), , drop = F]) ))
     colnames(plotdata4)=c('Xdata',dummy[-c(1, 2, 3),1])
     
     plotdata5 = melt(plotdata4, id = "Xdata")
@@ -653,7 +652,7 @@ server = function(input, output,session) {
       scale_x_reverse() + labs(x='ppm',y='Intensity') + expand_limits(y=0)
     
     r=which(ROI_profile[,4]==sell$autorun_data$signals_names[sell$info$col])
-      plotdata = data.frame(Xdata, signals = plot_data[3 + r, ] * max(Ydata))
+      plotdata = data.frame(Xdata, signals = plot_data[3 + r, ] )
       
       v$blah$p=v$blah$p +
         geom_area(
@@ -679,6 +678,7 @@ server = function(input, output,session) {
     revals4$mtcars[,11]=sell$flo[sell$info$row,ind,3]-sell$flo[sell$info$row,ind,1]
     revals3$mtcars=cbind(sell$finaloutput$Area[sell$info$row,ind],sell$finaloutput$fitting_error[sell$info$row,ind],sell$finaloutput$signal_area_ratio[sell$info$row,ind])
     colnames(revals3$mtcars)=c('Quantification','fitting error','signal/total area ratio')
+    updateTabsetPanel(session, "mynavlist",selected = "ROI Testing")
     
   })
   
@@ -1233,6 +1233,7 @@ server = function(input, output,session) {
       session$sendCustomMessage('activeNavs', 'Outliers')
       session$sendCustomMessage('activeNavs', 'Univariate analysis')
       session$sendCustomMessage('activeNavs', 'ROI Profiles')
+      updateTabsetPanel(session, "mynavlist",selected = "ROI Testing")
       
   })
   
@@ -1342,6 +1343,7 @@ server = function(input, output,session) {
     session$sendCustomMessage('activeNavs', 'Outliers')
     session$sendCustomMessage('activeNavs', 'Univariate analysis')
     session$sendCustomMessage('activeNavs', 'ROI Profiles')
+    updateTabsetPanel(session, "mynavlist",selected = "ROI Testing")
     
 
   })
